@@ -20,26 +20,26 @@
 # CMD ["catalina.sh", "run"]
 
 
-# Use a valid Maven image
+# Use a Maven image for the build stage
 FROM maven:3.8.8-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy the pom.xml and source code
+# Copy the project files
 COPY ./pom.xml ./pom.xml
 COPY ./src ./src
 
 # Build the project
 RUN mvn clean package -DskipTests
 
-# Use the Tomcat runtime
+# Use a Tomcat image for deployment
 FROM tomcat:10.1.18
 WORKDIR /usr/local/tomcat/webapps
 
-# Copy the built .war file to the webapps directory
+# Copy the built WAR file
 COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT-exec.war ./retail-edge-app.war
 
-# Expose Tomcat's port
+# Expose the Tomcat port
 EXPOSE 8080
 
-# Run Tomcat
+# Start Tomcat
 CMD ["catalina.sh", "run"]
