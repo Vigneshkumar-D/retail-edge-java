@@ -262,7 +262,7 @@
 
   </dependencies>
 
-  <build>
+<!--   <build>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -277,5 +277,35 @@
         </configuration>
       </plugin>
     </plugins>
-  </build>
+  </build> -->
+
+  <build>
+    <plugins>
+        <!-- Spring Boot Maven Plugin -->
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>3.3.2</version> <!-- Optional: Spring Boot plugin usually doesn't require a version in Spring Boot projects -->
+        </plugin>
+
+        <!-- Maven WAR Plugin -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>3.3.2</version>
+        </plugin>
+
+        <!-- Maven Compiler Plugin -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.11.0</version> <!-- It's good to specify the version -->
+            <configuration>
+                <source>17</source> <!-- Specifies the Java version for compilation -->
+                <target>17</target>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
 </project>
