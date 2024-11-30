@@ -36,7 +36,7 @@ FROM tomcat:10.1.18
 WORKDIR /usr/local/tomcat/webapps
 
 # Copy the built WAR file
-COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT-exec.war ./retail-edge-app.war
+COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT.war ./retail-edge-app.war
 
 # Expose the Tomcat port
 EXPOSE 8080
