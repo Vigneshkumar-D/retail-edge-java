@@ -8,7 +8,7 @@ WORKDIR $CATALINA_HOME/webapps/
 RUN rm -rf ROOT
 
 # Copy the Spring Boot application .war file to the webapps directory
-COPY ./container/target/retail-edge-app-1.0-SNAPSHOT-exec.war retail-edge-app.war
+COPY /target/retail-edge-app-1.0-SNAPSHOT-exec.war retail-edge-app.war
 
 # Expose the default Tomcat port
 EXPOSE 8080
