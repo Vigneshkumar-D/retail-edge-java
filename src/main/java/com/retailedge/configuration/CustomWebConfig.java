@@ -44,9 +44,12 @@ public class CustomWebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         List<String> erv = List.of(webConfigProperties.getCors().getAllowedOrigins());
         registry.addMapping("/**")
-                .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
-                .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
-                .allowedHeaders("*")
+                .allowedOrigins("https://retail-edge.netlify.app")
+                // .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
+                // .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
+                // .allowedHeaders("*")
+                .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD")
+                .allowedHeaders("Authorization", "Cache-Control", "Content-Type");
                 .allowCredentials(true)
                 .maxAge(3600);
     }
