@@ -35,8 +35,11 @@ RUN mvn clean package -DskipTests
 FROM tomcat:10.1.18
 WORKDIR /usr/local/tomcat/webapps
 
-# Copy the built WAR file
-COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT.war ./retail-edge-app.war
+# Dynamically set the server port in Tomcat's configuration
+RUN sed -i 's/port="8080"/port="${PORT}"/' /usr/local/tomcat/conf/server.xml
+
+# Deploy the WAR file to ROOT
+COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT.war ./ROOT.war
 
 # Expose the Tomcat port
 EXPOSE 8080
