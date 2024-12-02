@@ -49,7 +49,7 @@ public class CustomWebConfig implements WebMvcConfigurer {
                 // .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
                 // .allowedHeaders("*")
                 .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD")
-                .allowedHeaders("Authorization", "Cache-Control", "Content-Type");
+                .allowedHeaders("Authorization", "Cache-Control", "Content-Type")
                 .allowCredentials(true)
                 .maxAge(3600);
     }
