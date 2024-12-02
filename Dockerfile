@@ -35,14 +35,19 @@ RUN mvn clean package -DskipTests
 FROM tomcat:10.1.18
 WORKDIR /usr/local/tomcat/webapps
 
-# Dynamically set the server port in Tomcat's configuration
-RUN sed -i 's/port="8080"/port="${PORT}"/' /usr/local/tomcat/conf/server.xml
+# Set environment variables for Tomcat
+ENV PORT=8080
+ENV SERVER_ADDRESS=0.0.0.0
+
+# Dynamically set the server port and bind to 0.0.0.0
+RUN sed -i 's/port="8080"/port="${PORT}"/' /usr/local/tomcat/conf/server.xml && \
+    sed -i 's/address="127.0.0.1"/address="0.0.0.0"/' /usr/local/tomcat/conf/server.xml
 
 # Deploy the WAR file to ROOT
 COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT.war ./ROOT.war
 
 # Expose the Tomcat port
-EXPOSE 8080
+EXPOSE ${PORT}
 
-# Start Tomcat
+# Start Tomcat, passing the dynamic port to catalina.sh
 CMD ["sh", "-c", "catalina.sh run -Dport=${PORT}"]
