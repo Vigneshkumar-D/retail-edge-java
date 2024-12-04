@@ -3,7 +3,7 @@ version: '3.8'
 services:
   tomcat:
     build: .
-    image: techbee/retail-edge:latest
+    image: /retail-edge-app:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_USERNAME: techbee
@@ -21,8 +21,8 @@ services:
     image: postgres:12.19-alpine3.20
     restart: always
     environment:
-      POSTGRES_USER: techbee
-      POSTGRES_PASSWORD: techBee@retail-Edge@123$%
+      POSTGRES_USER: maxbyte
+      POSTGRES_PASSWORD: max2max123456!
       POSTGRES_DB: retail-edge
     ports:
       - "5432:5432"

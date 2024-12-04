@@ -155,7 +155,7 @@ public class Invoice {
 //    @CollectionTable(name = "invoice_payment_methods", joinColumns = @JoinColumn(name = "invoice_id"))
 //    @Column(name = "payment_method")
     @Convert(converter = PaymentMethodListConverter.class)
-    @Column(columnDefinition = "TEXT[]")
+//    @Column(columnDefinition = "TEXT[]")
     private List<PaymentMethod> paymentMethod;
 
     @ManyToOne
