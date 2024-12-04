@@ -44,15 +44,14 @@ public class CustomWebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         List<String> erv = List.of(webConfigProperties.getCors().getAllowedOrigins());
         registry.addMapping("/**")
-                .allowedOrigins("https://retail-edge.netlify.app")
-                // .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
-                // .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
-                // .allowedHeaders("*")
-                .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD")
-                .allowedHeaders("Authorization", "Cache-Control", "Content-Type")
+                .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
+                .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
+                .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
     }
+
+
 
     @Bean
     public ErrorPageRegistrar errorPageRegistrar() {
@@ -64,7 +63,7 @@ public class CustomWebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String path = "file://" + environment.getProperty("asset.path") + "/byte-factory/uploads/";
+        String path = "file://" + environment.getProperty("asset.path") + "/uploads/";
         registry
                 .addResourceHandler("/public/**")
                 .addResourceLocations(path);
