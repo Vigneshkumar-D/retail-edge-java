@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-alpine
 WORKDIR /app
 
 # Copy the Spring Boot executable JAR to the container
-COPY ./target/retail-edge-app-1.0-SNAPSHOT.jar app.jar
+COPY ./target/retail-edge-app-1.0-SNAPSHOT.war app.war
 
 # Expose the default Spring Boot port
 EXPOSE 8080
