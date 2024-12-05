@@ -1,17 +1,11 @@
-# Use a base image with Java and Tomcat pre-installed
-FROM tomcat:10.1.18
 
-# Set the working directory to the Tomcat webapps directory
-WORKDIR $CATALINA_HOME/webapps/
+FROM maven:3.8.5-openjdk-17 AS build
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Remove the default ROOT application
-RUN rm -rf ROOT
-
-# Copy the Spring Boot application .war file to the webapps directory
-COPY ./target/retail-edge-app-1.0-SNAPSHOT-exec.war retail-edge-app.war
-
-# Expose the default Tomcat port
+FROM openjdk:17.0.1-jdk-slim
+COPY --from=build ./target/retail-edge-app-1.0-SNAPSHOT.war retail-edge-app.war
 EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "retail-edge-app.war"]
 
-# Start Tomcat when the Docker container launches
-CMD ["catalina.sh", "run"]
+

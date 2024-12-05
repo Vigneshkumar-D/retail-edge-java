@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  tomcat:
+  app:
     build: .
-    image: /retail-edge-app:latest
+    image: vigneshkumard2797/retail-edge-app:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_USERNAME: techbee
@@ -30,19 +30,25 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   zookeeper:
-    image: ubuntu/zookeeper:latest
+    image: bitnami/zookeeper:latest
     ports:
       - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    image: ubuntu/kafka:latest
+    image: bitnami/kafka:latest
     restart: always
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
+
 volumes:
   postgres_data:
