@@ -1,14 +1,12 @@
-# Use a base OpenJDK image
-FROM openjdk:17-jdk-alpine
-
-# Set the working directory
+# Stage 1: Build the application
+FROM maven:3.8.6-openjdk-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the Spring Boot executable JAR to the container
-COPY ./target/retail-edge-app-1.0-SNAPSHOT.war app.war
-
-# Expose the default Spring Boot port
+# Stage 2: Create the runtime image
+FROM openjdk:17-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/retail-edge-app-1.0-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Run the Spring Boot application
 ENTRYPOINT ["java", "-jar", "app.jar"]
