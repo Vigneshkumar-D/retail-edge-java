@@ -111,7 +111,7 @@ public class ProductService {
     public Product update(Integer productId, ProductDto productDto) {
         Optional<Product> productOptional = productRepository.findById(productId);
 
-        if (productOptional.isEmpty()) {
+        if (!productOptional.isPresent()) {
             throw new RuntimeException("Product not found with id: " + productId);
         }
         Product product = productOptional.get();

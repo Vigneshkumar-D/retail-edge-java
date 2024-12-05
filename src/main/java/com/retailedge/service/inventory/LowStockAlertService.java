@@ -36,7 +36,7 @@ public class LowStockAlertService {
 
         Optional<LowStockAlert> lowStockAlertOptional = lowStockAlertRepository.findById(lowStockAlertId);
 
-        if (lowStockAlertOptional.isEmpty()) {
+        if (!lowStockAlertOptional.isPresent()) {
             throw new RuntimeException("Product not found with id: " + lowStockAlertId);
         }
 

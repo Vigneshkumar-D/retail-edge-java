@@ -106,6 +106,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -120,7 +121,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private TokenBlacklistRepository tokenBlacklistRepository;
     // Define a list of public URLs that should bypass JWT filter
-    private static final List<String> PUBLIC_URLS = List.of(
+    private static final List<String> PUBLIC_URLS = Arrays.asList(
             "/api/auth/login",            // Login endpoint
             "/api/auth/forget-password",
             "/api/register",         // Registration endpoint

@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity
@@ -44,7 +45,7 @@ public class Role {
     @SneakyThrows
     @PreRemove
     private void preRemove(){
-        List<String> roles = List.of("Super User","Manager","Guest");
+        List<String> roles = Arrays.asList("Super User","Manager","Guest");
         if(roles.contains(this.roleName)){
             throw new RuntimeException("Predefined Role : \""+this.roleName+"\" can't be deleted");
         }

@@ -35,7 +35,7 @@ public class FeedbackService {
     public Feedback update(Integer feedbackId, FeedbackDto feedbackDto){
         Optional<Feedback> feedbackOptional = feedbackRepository.findById(feedbackId);
 
-        if (feedbackOptional.isEmpty()) {
+        if (!feedbackOptional.isPresent()) {
             throw new RuntimeException("Feedback Details not found with id: " + feedbackId);
         }
 

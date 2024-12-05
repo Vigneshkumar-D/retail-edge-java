@@ -78,7 +78,7 @@ public class EMIDetailsService {
 
     public EMIDetails update(Integer emiDetailsId, EMIDetailsDto emiDetailsDto){
         Optional<EMIDetails> emiDetailsOptional = emiDetailsRepository.findById(emiDetailsId);
-        if (emiDetailsOptional.isEmpty()) {
+        if (!emiDetailsOptional.isPresent()) {
             throw new RuntimeException("EMI Details not found with id: " + emiDetailsId);
         }
         EMIDetails emiDetails = emiDetailsOptional.get();

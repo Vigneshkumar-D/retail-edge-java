@@ -49,7 +49,7 @@ public class TaxSlabService {
     public TaxSlab update(Long taxSlabId, TaxSlabDto taxSlabDto) {
         Optional<TaxSlab> taxSlabOptional = taxSlabRepository.findById(taxSlabId);
 
-        if (taxSlabOptional.isEmpty()) {
+        if (!taxSlabOptional.isPresent()) {
             throw new RuntimeException("Tax Slab not found with id: " + taxSlabId);
         }
 

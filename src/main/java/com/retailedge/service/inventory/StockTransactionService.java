@@ -44,7 +44,7 @@ public class StockTransactionService {
     public StockTransaction update(Integer stockTransactionId,  StockTransactionDto stockTransactionDto){
         Optional<StockTransaction> stockTransactionOptional = stockTransactionRepository.findById(stockTransactionId);
 
-        if (stockTransactionOptional.isEmpty()) {
+        if (!stockTransactionOptional.isPresent()) {
             throw new RuntimeException("Product not found with id: " + stockTransactionId);
         }
 

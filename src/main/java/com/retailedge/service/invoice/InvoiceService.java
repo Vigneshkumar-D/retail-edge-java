@@ -134,7 +134,7 @@ public class InvoiceService {
 
     public Invoice update(Integer invoiceId, InvoiceDto invoiceDto) {
         Optional<Invoice> invoiceOptional = invoiceRepository.findById(invoiceId);
-        if (invoiceOptional.isEmpty()) {
+        if (!invoiceOptional.isPresent()) {
             throw new RuntimeException("Invoice Details not found with id: " + invoiceId);
         }
         Invoice invoice = invoiceOptional.get();

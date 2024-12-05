@@ -39,7 +39,7 @@ public class CustomerService {
 
     public Customer update(Integer customerId, CustomerDto customerDto){
         Optional<Customer> customerOptional = customerRepository.findById(customerId);
-        if (customerOptional.isEmpty()) {
+        if (!customerOptional.isPresent()) {
             throw new RuntimeException("Customer Details not found with id: " + customerId);
         }
 

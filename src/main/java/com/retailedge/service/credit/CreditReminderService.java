@@ -40,7 +40,7 @@ public class CreditReminderService {
 
     public CreditReminder update(Integer creditReminderId, CreditReminderDto creditReminderDto){
         Optional<CreditReminder> creditReminderOptional = creditReminderRepository.findById(creditReminderId);
-        if (creditReminderOptional.isEmpty()) {
+        if (!creditReminderOptional.isPresent()) {
             throw new RuntimeException("Credit Reminder Details not found with id: " + creditReminderId);
         }
         CreditReminder creditReminder = creditReminderOptional.get();

@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,7 +111,7 @@ public class UserService implements UserDetailsService{
 
     @PostConstruct
     public void addUsers() {
-        List<User> users = List.of(
+        List<User> users = Arrays.asList(
                 new User(1, "System User", this.roleService.getSystem(), this.encodePassword("123456"), true, "system@example.com", "9876543210"),
                 new User(2, "Admin", this.roleService.getSuperUser(), this.encodePassword("123456"), true, "admin@example.com", "9876543220"),
                 new User(3, "Anonymous User", this.roleService.getGuest(), this.encodePassword("123456"), true, "anonymous@example.com", "9876543230")
@@ -118,7 +119,7 @@ public class UserService implements UserDetailsService{
 
         for (User user : users) {
             try {
-                if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
+                if (userRepository.findByUsername(user.getUsername()).isPresent()) {
                     userRepository.save(user);
                 } else {
                     System.out.println("User " + user.getUsername() + " already exists.");

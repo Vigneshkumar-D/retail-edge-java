@@ -37,7 +37,7 @@ public class InvoiceLineItemService {
 
     public InvoiceLineItem update(Integer invoiceLineItemId, InvoiceLineItemDto invoiceLineItemDto) {
         Optional<InvoiceLineItem> invoiceLineItemOptional = invoiceLineItemRepository.findById(invoiceLineItemId);
-        if (invoiceLineItemOptional.isEmpty()) {
+        if (!invoiceLineItemOptional.isPresent()) {
             throw new RuntimeException("Invoice Line Item Details not found with id: " + invoiceLineItemId);
         }
         InvoiceLineItem invoiceLineItem = invoiceLineItemOptional.get();

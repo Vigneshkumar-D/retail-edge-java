@@ -36,7 +36,7 @@ public class PurchaseService {
     public Purchase update(Integer purchaseId, PurchaseDto purchaseDto){
         Optional<Purchase> purchaseOptional = purchaseRepository.findById(purchaseId);
 
-        if (purchaseOptional.isEmpty()) {
+        if (!purchaseOptional.isPresent()) {
             throw new RuntimeException("Purchase Details not found with id: " + purchaseId);
         }
 

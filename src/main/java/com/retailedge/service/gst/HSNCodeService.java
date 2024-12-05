@@ -46,7 +46,7 @@ public class HSNCodeService {
     public HSNCode update(Long hsnCodeId, HSNCodeDto hsnCodeDto) {
         Optional<HSNCode> hsnCodeOptional = hsnCodeRepository.findById(hsnCodeId);
 
-        if (hsnCodeOptional.isEmpty()) {
+        if (!hsnCodeOptional.isPresent()) {
             throw new RuntimeException("HSN code not found with id: " + hsnCodeId);
         }
 

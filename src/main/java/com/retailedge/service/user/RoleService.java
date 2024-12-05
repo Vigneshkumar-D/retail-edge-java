@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +58,7 @@ public class RoleService {
 
     @PostConstruct
     public void addRoles(){
-        List<Role> roles = List.of(
+        List<Role> roles = Arrays.asList(
                 new Role(1,"System", true, Instant.now(), Instant.now()),
                 new Role(2,"Super User", true, Instant.now(), Instant.now()),
                 new Role(3,"Manager", true, Instant.now(), Instant.now()),

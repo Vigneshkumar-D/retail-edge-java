@@ -18,6 +18,7 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -42,7 +43,7 @@ public class CustomWebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        List<String> erv = List.of(webConfigProperties.getCors().getAllowedOrigins());
+        List<String> erv = Arrays.asList(webConfigProperties.getCors().getAllowedOrigins());
         registry.addMapping("/**")
                 .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
                 .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
