@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    image: vigneshkumard2797/retail-edge-app:latest
+    image: vigneshkumard2797/retail-edge:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_USERNAME: admin
