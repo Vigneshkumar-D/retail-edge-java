@@ -173,14 +173,7 @@ public class SecurityConfig {
                         ).permitAll() // Allow public access to specific endpoints
                         .anyRequest().authenticated() // All other requests require authentication
                 )
-                .cors(withDefaults())
                 .httpBasic(withDefaults())
-//                .exceptionHandling(exception -> exception
-//                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) // Handle auth errors with 401
-//                        .accessDeniedHandler((request, response, ex) -> {
-//                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: Access denied");
-//                        })
-//                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter before the auth filter
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.deny())
@@ -190,14 +183,6 @@ public class SecurityConfig {
                         .referrerPolicy(policy -> policy.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN))
                         .httpStrictTransportSecurity(sec -> sec.includeSubDomains(true).maxAgeInSeconds(31536000))
                 )
-//                .exceptionHandling(exceptions -> exceptions
-//                        .authenticationEntryPoint((request, response, authException) -> {
-//                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: Invalid or missing token");
-//                        })
-//                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-//                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: You do not have permission to access this resource");
-//                        })
-//                )
                 .build();
     }
 
@@ -216,4 +201,5 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }
+
 
