@@ -41,16 +41,38 @@ public class CustomWebConfig implements WebMvcConfigurer {
 
 
 
+    // @Override
+    // public void addCorsMappings(CorsRegistry registry) {
+    //     List<String> erv = Arrays.asList(webConfigProperties.getCors().getAllowedOrigins());
+    //     registry.addMapping("/**")
+    //             .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
+    //             .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
+    //             .allowedHeaders("*")
+    //             .allowCredentials(true)
+    //             .maxAge(3600);
+    // }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        List<String> erv = Arrays.asList(webConfigProperties.getCors().getAllowedOrigins());
+        String[] allowedOrigins = webConfigProperties.getCors().getAllowedOrigins();
+        String[] allowedMethods = webConfigProperties.getCors().getAllowedMethods();
+
+        // Ensure non-null values
+        if (allowedOrigins == null || allowedOrigins.length == 0) {
+            allowedOrigins = new String[]{"*"}; // Default to allow all origins (adjust as needed).
+        }
+        if (allowedMethods == null || allowedMethods.length == 0) {
+            allowedMethods = new String[]{"GET", "POST", "PUT", "DELETE"}; // Default to common HTTP methods.
+        }
+
         registry.addMapping("/**")
-                .allowedOrigins(webConfigProperties.getCors().getAllowedOrigins())
-                .allowedMethods(webConfigProperties.getCors().getAllowedMethods())
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods(allowedMethods)
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
     }
+
 
 
 
