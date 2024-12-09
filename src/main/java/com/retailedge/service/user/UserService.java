@@ -113,7 +113,7 @@ public class UserService implements UserDetailsService{
     public void addUsers() {
         List<User> users = Arrays.asList(
                 new User(1, "System User", this.roleService.getSystem(), this.encodePassword("123456"), true, "system@example.com", "9876543210"),
-                new User(2, "Admin", this.roleService.getSuperUser(), this.encodePassword("123456"), true, "admin@example.com", "9876543220"),
+                new User(2, "Admin", this.roleService.getSuperUser(), this.encodePassword("123456"), true, "vigneshkumar.d2797@gmail.com", "9876543220"),
                 new User(3, "Anonymous User", this.roleService.getGuest(), this.encodePassword("123456"), true, "anonymous@example.com", "9876543230")
         );
 
