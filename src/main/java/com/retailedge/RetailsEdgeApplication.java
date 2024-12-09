@@ -23,9 +23,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 // }
 
 
-@SpringBootApplication(exclude = {
-    org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableScheduling
 // @EnableJpaAuditing // Uncomment if auditing is required later
 @EnableAsync
