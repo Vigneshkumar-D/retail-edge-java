@@ -3,12 +3,12 @@ version: '3.8'
 services:
   app:
     build: .
-    image: vigneshkumard2797/retail-edge-app:latest
+    image: vigneshkumard2797/retail-edge:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_USERNAME: techbee
-      SPRING_DATASOURCE_PASSWORD: techBee@retail-Edge@123$%
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/retail-edge
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: riO8KmmKELcsJSWLzbk6nFBUCaNIuYae
+      SPRING_DATASOURCE_URL: postgresql://admin:riO8KmmKELcsJSWLzbk6nFBUCaNIuYae@dpg-ct69qirqf0us738diu50-a.oregon-postgres.render.com/retailedge
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8080:8080"
