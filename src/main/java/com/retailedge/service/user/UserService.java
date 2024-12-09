@@ -111,7 +111,6 @@ public class UserService implements UserDetailsService{
 
     @PostConstruct
     public void addUsers() {
-
         userRepository.deleteAll();
         List<User> users = Arrays.asList(
                 new User(1, "System User", this.roleService.getSystem(), this.encodePassword("123456"), true, "system@example.com", "9876543210"),
@@ -120,15 +119,11 @@ public class UserService implements UserDetailsService{
         );
         
         for (User user : users) {
-            try {
-                if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-                    userRepository.save(user);
-                } else {
-                    System.out.println("User " + user.getUsername() + " already exists.");
-                }
-            } catch (DataIntegrityViolationException ex) {
-                System.err.println("Data integrity violation while saving user " + user.getUsername() + ": " + ex.getMessage());
-            }
+        userRepository.findByUsername(user.getUsername())
+                      .ifPresentOrElse(
+                          existing -> System.out.println("User " + user.getUsername() + " already exists. "+ user.getPassword()),
+                          () -> userRepository.save(user)
+                      );
         }
     }
 
