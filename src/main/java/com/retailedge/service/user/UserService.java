@@ -111,7 +111,7 @@ public class UserService implements UserDetailsService{
 
     @PostConstruct
     public void addUsers() {
-        userRepository.deleteAll();
+       
         List<User> users = Arrays.asList(
                 new User(1, "System User", this.roleService.getSystem(), this.encodePassword("123456"), true, "system@example.com", "9876543210"),
                 new User(2, "Admin", this.roleService.getSuperUser(), this.encodePassword("Admin@123"), true, "vigneshkumar.d2797@gmail.com", "9876543220"),
