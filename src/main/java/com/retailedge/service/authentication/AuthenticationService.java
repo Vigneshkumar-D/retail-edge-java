@@ -86,9 +86,9 @@ public class AuthenticationService {
     public ResponseEntity<String> sendResetPasswordLink(String email) {
         System.out.println("email "+ email);
         Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isPresent()) {
+        if (!userOptional.isPresent()) {
 //            throw new RuntimeException("User with email not found");
-         return   ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User with email not found");
+             return   ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User with email not found");
         }
 
 
