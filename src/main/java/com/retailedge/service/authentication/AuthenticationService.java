@@ -118,7 +118,7 @@ public class AuthenticationService {
                 "<h3>Hello " + user.getUsername() + ",</h3>" +
                 "<p>You recently requested to reset your password for your RetailEdge account. Click the button below to reset it:</p>" +
                 "<div style='text-align: center; margin: 20px 0;'>" +
-                "<a href='"+rootUrl+"/reset-password?token="+ token + "' style='background: #007bff; color: #fff; padding: 10px 20px; border-radius: 5px; font-size: 16px;'>Reset Your Password</a>" +
+                "<a href=https://retail-edge.netlify.app/reset-password?token="+ token + "' style='background: #007bff; color: #fff; padding: 10px 20px; border-radius: 5px; font-size: 16px;'>Reset Your Password</a>" +
                 "</div>" +
                 "<p>If you did not request a password reset, please ignore this email or contact support if you have any concerns.</p>" +
                 "<p>This link is valid for 10 minutes.</p>" +
