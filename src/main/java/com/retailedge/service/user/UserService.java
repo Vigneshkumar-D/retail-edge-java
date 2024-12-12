@@ -3,6 +3,7 @@ package com.retailedge.service.user;
 import com.retailedge.dto.user.*;
 import com.retailedge.entity.user.*;
 import com.retailedge.repository.user.*;
+import com.retailedge.service.authentication.EmailService;
 import jakarta.annotation.PostConstruct;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -35,6 +36,9 @@ public class UserService implements UserDetailsService{
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private ModelMapper modelMapper; // Injecting ModelMapper
@@ -71,10 +75,10 @@ public class UserService implements UserDetailsService{
         User user = modelMapper.map(userDTO, User.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(role);
-//        user.setRoleId(userDTO.getRoleId());
         user.setActive(true);
-//        user.setLastLogin(Instant.now());
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        this.sentWelcomeMail(savedUser);
+        return savedUser;
     }
 
 
@@ -143,6 +147,38 @@ public class UserService implements UserDetailsService{
             }
         }
         return null; // Return null if not authenticated or unable to retrieve user
+    }
+
+    public void sentWelcomeMail(User user){
+        String body = "<html>" +
+                "<head>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; margin: 0; padding: 0; }" +
+                ".container { max-width: 600px; margin: 20px auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }" +
+                "h3 { color: #007bff; }" +
+                "p { font-size: 14px; line-height: 1.5; }" +
+                "a { color: #007bff; text-decoration: none; }" +
+                "a:hover { text-decoration: underline; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<h3>Welcome, " + user.getUsername() + "!</h3>" +
+                "<p>We are excited to have you join RetailEdge! Your account has been successfully created. Here are your login credentials:</p>" +
+                "<p><strong>Username:</strong> " + user.getUsername() + "</p>" +
+                "<p><strong>Password:</strong> " + user.getPassword() + "</p>" +
+                "<p>Click the button below to log in and start exploring:</p>" +
+                "<div style='text-align: center; margin: 20px 0;'>" +
+                "<a href='https://retail-edge.netlify.app/login' style='background: #007bff; color: #fff; padding: 10px 20px; border-radius: 5px; font-size: 16px;'>Log In to Your Account</a>" +
+                "</div>" +
+                "<p>If you wish to set a new password, you can use the 'Forgot Password' option on the login page to reset it at any time.</p>" +
+                "<p>If you have any questions or need assistance, feel free to reach out to our support team.</p>" +
+                "<p>We hope you enjoy using RetailEdge!</p>" +
+                "<p>Regards,<br>Team RetailEdge</p>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
+        emailService.sendEmail(user.getEmail(), "Welcome to RetailEdge! Get Started Today", body );
     }
 
 }

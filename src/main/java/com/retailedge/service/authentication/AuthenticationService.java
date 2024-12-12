@@ -86,12 +86,9 @@ public class AuthenticationService {
     public ResponseEntity<String> sendResetPasswordLink(String email) {
         System.out.println("email "+ email);
         Optional<User> userOptional = userRepository.findByEmail(email);
-        if (!userOptional.isPresent()) {
-//            throw new RuntimeException("User with email not found");
+        if (userOptional.isEmpty()) {
              return   ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User with email not found");
         }
-
-
         User user = userOptional.get();
 
         String token = jwtUtil.generatePasswordResetToken(user.getUsername());
