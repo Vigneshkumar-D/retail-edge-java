@@ -100,8 +100,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api/auth/**",
                                 "/public/**",
-                                "/ws/**",
-                                "/api/oee-excel/**"
+                                "/ws/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

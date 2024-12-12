@@ -77,7 +77,7 @@ public class UserService implements UserDetailsService{
         user.setRole(role);
         user.setActive(true);
         User savedUser = userRepository.save(user);
-        this.sentWelcomeMail(savedUser);
+        this.sentWelcomeMail(userDTO);
         return savedUser;
     }
 
@@ -149,7 +149,8 @@ public class UserService implements UserDetailsService{
         return null; // Return null if not authenticated or unable to retrieve user
     }
 
-    public void sentWelcomeMail(User user){
+    public void sentWelcomeMail(UserDTO user){
+        System.out.println("In user mail");
         String body = "<html>" +
                 "<head>" +
                 "<style>" +
