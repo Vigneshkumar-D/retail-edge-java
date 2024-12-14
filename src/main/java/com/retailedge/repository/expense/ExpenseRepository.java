@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long>, JpaSpecificationExecutor<Expense> {
-    boolean existsByCategory_CategoryId(Long categoryId);
+    boolean existsByCategory_Id(Long categoryId);
 }
 

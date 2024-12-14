@@ -61,7 +61,7 @@ public class ExpenseCategoryService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseModel<>(false, "Expense Category not found", 404));
             }
-            if (expenseRepository.existsByCategory_CategoryId(expenseCategoryId)) {
+            if (expenseRepository.existsByCategory_Id(expenseCategoryId)) {
                 throw new IllegalStateException("Cannot delete category as it is associated with one or more expenses.");
             }
             expenseCategoryRepository.deleteById(expenseCategoryId);
