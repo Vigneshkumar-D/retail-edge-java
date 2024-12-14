@@ -8,7 +8,7 @@ import lombok.*;
 @Setter
 public class ExpenseCategoryDto {
 
-    private String name;
+    private String category;
 
     private Double budget;
 

@@ -16,10 +16,10 @@ public class ExpenseCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long categoryId;
+    private Long Id;
 
     @Column(nullable = false, unique = true, length = 100)
-    private String name;
+    private String category;
 
     @Column(nullable = true)
     private Double budget;

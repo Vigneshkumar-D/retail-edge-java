@@ -49,7 +49,7 @@ public class UserService implements UserDetailsService{
         if (user == null) {
             return null;
         }
-        Role role = roleRepository.findById(userDTO.getRole())
+        Role role = roleRepository.findById(userDTO.getRole().getId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -68,7 +68,7 @@ public class UserService implements UserDetailsService{
 
     public User createUser(UserDTO userDTO) {
         // Find the role by ID
-        Role role = roleRepository.findById(userDTO.getRole())
+        Role role = roleRepository.findById(userDTO.getRole().getId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         // Create a new user and map fields
