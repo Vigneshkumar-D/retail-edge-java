@@ -106,14 +106,14 @@ public class BarcodeUtil {
 
             String alphanumericBarcode = generateAlphanumericBarcode(); // Your logic for a secondary unique value
 
-            String directoryPath = "barcodes";
-            String filePath = directoryPath + File.separator + "product_" + productName + ".png";
-
-            // Create directory if it does not exist
-            File directory = new File(directoryPath);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+//            String directoryPath = "barcodes";
+//            String filePath = directoryPath + File.separator + "product_" + productName + ".png";
+//
+//            // Create directory if it does not exist
+//            File directory = new File(directoryPath);
+//            if (!directory.exists()) {
+//                directory.mkdirs();
+//            }
 
             int width = 190; // Width of the barcode
             int height = 40; // Height of the barcode
@@ -139,9 +139,9 @@ public class BarcodeUtil {
             g.drawString(alphanumericBarcode, x, height + 20);
 
             // Write the final image to a file (optional)
-            try (FileOutputStream fos = new FileOutputStream(filePath)) {
-                ImageIO.write(finalImage, "PNG", fos);
-            }
+//            try (FileOutputStream fos = new FileOutputStream(filePath)) {
+//                ImageIO.write(finalImage, "PNG", fos);
+//            }
 
             // Write the final image to the ByteArrayOutputStream
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
