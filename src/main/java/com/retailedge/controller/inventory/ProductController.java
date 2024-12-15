@@ -26,12 +26,12 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseModel<?>> add(@RequestBody ProductDto productDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody ProductDto productDto) throws Exception {
         return productService.add(productDto);
     }
 
     @PutMapping("/{productId}")
-    public Product update(@PathVariable(name = "productId") Integer productId, @RequestBody ProductDto productDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable(name = "productId") Integer productId, @RequestBody ProductDto productDto){
         return productService.update(productId, productDto);
     }
 

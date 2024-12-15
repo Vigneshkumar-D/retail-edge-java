@@ -13,6 +13,7 @@ import com.retailedge.model.inventory.BarcodeResult;
 import com.retailedge.repository.gst.HSNCodeRepository;
 import com.retailedge.repository.inventory.CategoryRepository;
 import com.retailedge.repository.inventory.ProductRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import com.retailedge.utils.inventory.BarcodeUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -51,6 +52,9 @@ public class ProductService {
     @Autowired
     private KafkaConsumerService kafkaConsumerService;
 
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
     public List<Product> list(){
@@ -62,67 +66,78 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public ResponseEntity<ResponseModel<?>> add(ProductDto productDto) {
-
+    public ResponseEntity<ResponseModel<?>> add(ProductDto productDto){
         Category category = categoryRepository.findById(productDto.getCategory().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + productDto.getCategory()));
 
-        if (productDto.getImeiNumber() != null) {
-            Product product = modelMapper.map(productDto, Product.class);
-            product.setCategory(category);
-            HSNCode hsnCode =  hsnCodeRepository.findByTaxSlab_Category_Id(category.getId());
-            if(hsnCode==null){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ResponseModel<>(true, "No HSN code found for category: "+category.getCategory()+" Please add one before adding product!", 500));
-            }else {
-                product.setHsnCode(hsnCode);
-                productRepository.save(product);
-                return ResponseEntity.ok(new ResponseModel<>(true, "Added successfully", 200, productRepository.save(product)));
-            }
-        } else {
-            // Handle NonMobileProduct creation
-            NonMobileProduct nonMobileProduct = new NonMobileProduct();
-            modelMapper.map(productDto, nonMobileProduct);
+        try{
+            if (productDto.getImeiNumber() != null) {
+                Product product = modelMapper.map(productDto, Product.class);
+                product.setCategory(category);
+                HSNCode hsnCode =  hsnCodeRepository.findByTaxSlab_Category_Id(category.getId());
+                if(hsnCode==null){
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new ResponseModel<>(true, "No HSN code found for category: "+category.getCategory()+" Please add one before adding product!", 500));
+                }else {
+                    product.setHsnCode(hsnCode);
+                    productRepository.save(product);
+                    return ResponseEntity.ok(new ResponseModel<>(true, "Added successfully", 200, productRepository.save(product)));
+                }
+            } else {
+                // Handle NonMobileProduct creation
+                NonMobileProduct nonMobileProduct = new NonMobileProduct();
+                modelMapper.map(productDto, nonMobileProduct);
 
-            // Generate barcode for non-mobile products
-            BarcodeResult barcodeResult = BarcodeUtil.generateBarcode(nonMobileProduct.getProductName(), nonMobileProduct.getModel());
-            assert barcodeResult != null;
-            nonMobileProduct.setBarcode(barcodeResult.getBarcodeValue());
-            nonMobileProduct.setBarcodeImage(barcodeResult.getBarcodeImage());
+                // Generate barcode for non-mobile products
+                BarcodeResult barcodeResult = BarcodeUtil.generateBarcode(nonMobileProduct.getProductName(), nonMobileProduct.getModel());
+                assert barcodeResult != null;
+                nonMobileProduct.setBarcode(barcodeResult.getBarcodeValue());
+                nonMobileProduct.setBarcodeImage(barcodeResult.getBarcodeImage());
 //            nonMobileProduct.setBarcodeImagePath("/barcodes/product_" + nonMobileProduct.getProductName() + "_" + nonMobileProduct.getModel() + ".png");
 
-            // Set the existing category
-            nonMobileProduct.setCategory(category);
+                // Set the existing category
+                nonMobileProduct.setCategory(category);
 
-            HSNCode hsnCode =  hsnCodeRepository.findByTaxSlab_Category_Id(category.getId());
+                HSNCode hsnCode =  hsnCodeRepository.findByTaxSlab_Category_Id(category.getId());
 
-            if(hsnCode==null){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ResponseModel<>(false, "No HSN code found for category: "+category.getCategory()+" Please add one before adding product !", 500));
-            }else {
-                nonMobileProduct.setHsnCode(hsnCode);
-              return ResponseEntity.ok(new ResponseModel<>(true, "Added successfully", 200, productRepository.save(nonMobileProduct)));
+                if(hsnCode==null){
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new ResponseModel<>(false, "No HSN code found for category: "+category.getCategory()+" Please add one before adding product !", 500));
+                }else {
+                    nonMobileProduct.setHsnCode(hsnCode);
+                    return ResponseEntity.ok(new ResponseModel<>(true, "Added successfully", 200, productRepository.save(nonMobileProduct)));
 
+                }
             }
+        } catch (Exception e){
+            String originalMessage = e.getMessage();
+            String sanitizedMessage = exceptionHandlerUtil.sanitizeErrorMessage(originalMessage);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error Adding Product: " + sanitizedMessage, 500));
         }
     }
 
 
-    public Product update(Integer productId, ProductDto productDto) {
-        Optional<Product> productOptional = productRepository.findById(productId);
+    public ResponseEntity<ResponseModel<?>> update(Integer productId, ProductDto productDto) {
 
-        if (!productOptional.isPresent()) {
-            throw new RuntimeException("Product not found with id: " + productId);
+        try{
+            Optional<Product> productOptional = productRepository.findById(productId);
+
+            if (productOptional.isEmpty()) {
+                throw new RuntimeException("Product not found with id: " + productId);
+            }
+            Product product = productOptional.get();
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                return conditions.getSource() != null;
+            });
+            modelMapper.map(productDto, product);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Added successfully", 200, productRepository.save(product)));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error Adding Product: " + e.getMessage(), 500));
         }
-        Product product = productOptional.get();
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
-        modelMapper.map(productDto, product);
-
-
-        return productRepository.save(product);
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer productId) throws Exception {
@@ -201,6 +216,8 @@ public class ProductService {
             productRepository.save(existingProduct.get());
         }
     }
+
+
 }
 
 
