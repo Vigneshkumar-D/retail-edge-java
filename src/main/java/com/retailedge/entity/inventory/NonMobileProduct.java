@@ -16,8 +16,8 @@ import lombok.Setter;
 @Setter
 public class NonMobileProduct extends Product {
 
-    @Transient
-    private String barcodeImagePath;
+//    @Transient
+//    private String barcodeImagePath;
 
     @Lob
     private byte[] barcodeImage;

@@ -28,7 +28,7 @@ public class ProductDto {
 
         private String model;
 
-        private String barcodeImagePath;
+        private String barcodeImage;
 
         private String barcode;
 

@@ -38,10 +38,10 @@ public class Product {
     @ManyToOne
     private HSNCode hsnCode;
 
-    @Transient
-    private String barcodeImagePath;
-
-    private String barcode;
+//    @Transient
+//    private String barcodeImage;
+//
+//    private String barcode;
 
     @Column(name = "low_stock_threshold")
     private int lowStockThreshold;

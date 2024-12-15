@@ -89,7 +89,7 @@ public class ProductService {
             assert barcodeResult != null;
             nonMobileProduct.setBarcode(barcodeResult.getBarcodeValue());
             nonMobileProduct.setBarcodeImage(barcodeResult.getBarcodeImage());
-            nonMobileProduct.setBarcodeImagePath("/barcodes/product_" + nonMobileProduct.getProductName() + "_" + nonMobileProduct.getModel() + ".png");
+//            nonMobileProduct.setBarcodeImagePath("/barcodes/product_" + nonMobileProduct.getProductName() + "_" + nonMobileProduct.getModel() + ".png");
 
             // Set the existing category
             nonMobileProduct.setCategory(category);
