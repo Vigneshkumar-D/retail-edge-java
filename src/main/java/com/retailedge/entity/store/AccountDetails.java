@@ -29,6 +29,6 @@ public class AccountDetails {
     private Double ifscCode;
 
     @Lob // Marks this field as capable of holding large binary data
-    @Column(name = "upi_qr_code", columnDefinition = "BLOB")
+    @Column(name = "upi_qr_code",  columnDefinition = "BYTEA")
     private byte[] upiQRCode;
 }
