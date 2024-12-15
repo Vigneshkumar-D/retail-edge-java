@@ -1,6 +1,7 @@
 package com.retailedge.service.inventory;
 
 
+import com.retailedge.entity.inventory.NonMobileProduct;
 import com.retailedge.entity.inventory.Product;
 import com.retailedge.entity.inventory.StockReport;
 import com.retailedge.enums.inventory.ProductStatus;
@@ -16,8 +17,7 @@ public class StockReportService {
 
     @Autowired
     private ProductRepository productRepository;
-
-
+    
     public List<StockReport> list(){
         List<Product> productList = productRepository.findAllByStatus(ProductStatus.IN_STOCK);
         List<StockReport> stockReportList = new ArrayList<>();
@@ -25,12 +25,14 @@ public class StockReportService {
             StockReport stockReport= new StockReport();
             stockReport.setProductName(product.getProductName());
             stockReport.setQuantity(product.getStockLevel());
-            if(product.getBarcode()!=null){
-                stockReport.setIMEIorBarcode(product.getBarcode());
-            }else{
-                stockReport.setIMEIorBarcode(product.getImeiNumber());
-            }
 
+            if (product instanceof NonMobileProduct nonMobileProduct) {
+                if (nonMobileProduct.getBarcode() != null) {
+                    stockReport.setIMEIorBarcode(nonMobileProduct.getBarcode());
+                }else {
+                    stockReport.setIMEIorBarcode(product.getImeiNumber());
+                }
+            }
         }
         return  stockReportList;
     }
