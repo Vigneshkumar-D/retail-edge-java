@@ -75,11 +75,8 @@ public class InvoiceService {
     @Autowired
     private ProductRepository productRepository;
 
-
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;
-
-
 
     public ResponseEntity<ResponseModel<?>> list(InvoiceSpecificationBuilder builder) {
         try{
@@ -89,7 +86,6 @@ public class InvoiceService {
                     .body(new ResponseModel<>(false, "Error retrieving invoice details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
-
 
     @Transactional
     public ResponseEntity<ResponseModel<?>> add(InvoiceDto invoiceDto) {

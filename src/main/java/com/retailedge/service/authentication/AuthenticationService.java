@@ -200,7 +200,7 @@ public class AuthenticationService {
 
        }catch(Exception e){
            e.printStackTrace();
-           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                    .body(new ResponseModel<>(false, "Error Resetting Password: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
        }
 

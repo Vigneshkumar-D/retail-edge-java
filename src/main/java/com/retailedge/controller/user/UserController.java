@@ -2,6 +2,7 @@ package com.retailedge.controller.user;
 
 import com.retailedge.dto.user.UserDTO;
 import com.retailedge.entity.user.User;
+import com.retailedge.model.ResponseModel;
 import com.retailedge.service.user.UserService;
 import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,50 +20,33 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody UserDTO userDTO) {
-        User createdUser = userService.createUser(userDTO);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    public ResponseEntity<ResponseModel<?>> createUser(@RequestBody UserDTO userDTO) {
+        return userService.createUser(userDTO);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") Integer userId) {
-        User user = userService.getUserById(userId);
-        if (user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ResponseModel<?>> getUserById(@PathVariable("id") Integer userId) {
+        return userService.getUserById(userId);
     }
 
-    // Update user
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable(name = "id") Integer userId, @RequestBody UserDTO userDTO) {
-        User updatedUser = userService.updateUser(userId, userDTO);
-        if (updatedUser != null) {
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ResponseModel<?>> updateUser(@PathVariable(name = "id") Integer userId, @RequestBody UserDTO userDTO) {
+        return userService.updateUser(userId, userDTO);
+
     }
 
-    // Delete user
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable(name = "id") Integer userId) {
-        if (userService.deleteUser(userId)) {
-            return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ResponseModel<?>> deleteUser(@PathVariable(name = "id") Integer userId) {
+        return userService.deleteUser(userId);
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<ResponseModel<?>> getAllUsers() {
+        return userService.getAllUsers();
     }
 
     @GetMapping("current-user")
-    public User getCurrentUser(){
+    public ResponseEntity<ResponseModel<?>> getCurrentUser(){
         return userService.getCurrentUser();
     }
 }

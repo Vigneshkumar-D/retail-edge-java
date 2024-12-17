@@ -2,6 +2,7 @@ package com.retailedge.controller.user;
 
 import com.retailedge.dto.user.RoleDTO;
 import com.retailedge.entity.user.Role;
+import com.retailedge.model.ResponseModel;
 import com.retailedge.service.user.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,43 +19,28 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        Role createdRole = roleService.createRole(role);
-        return new ResponseEntity<>(createdRole, HttpStatus.CREATED);
+    public ResponseEntity<ResponseModel<?>> createRole(@RequestBody Role role) {
+        return roleService.createRole(role);
+
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getRoleById(@PathVariable(name = "id") Integer roleId) {
-        Role role = roleService.getRoleById(roleId);
-        if (role != null) {
-            return new ResponseEntity<>(role, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ResponseModel<?>> getRoleById(@PathVariable(name = "id") Integer roleId) {
+        return roleService.getRoleById(roleId);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Role> updateRole(@PathVariable(name = "id") Integer roleId, @RequestBody RoleDTO roleDTO) {
-        Role updatedRole = roleService.updateRole(roleId, roleDTO);
-        if (updatedRole != null) {
-            return new ResponseEntity<>(updatedRole, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ResponseModel<?>> updateRole(@PathVariable(name = "id") Integer roleId, @RequestBody RoleDTO roleDTO) {
+        return roleService.updateRole(roleId, roleDTO);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteRole(@PathVariable(name = "id") Integer roleId) {
-        if (roleService.deleteRole(roleId)) {
-            return new ResponseEntity<>("Role deleted successfully", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Role not found", HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ResponseModel<?>> deleteRole(@PathVariable(name = "id") Integer roleId) {
+        return roleService.deleteRole(roleId);
     }
 
     @GetMapping
-    public ResponseEntity<List<Role>> getAllRoles() {
-        List<Role> roles = roleService.getAllRoles();
-        return new ResponseEntity<>(roles, HttpStatus.OK);
+    public ResponseEntity<ResponseModel<?>> getAllRoles() {
+        return roleService.getAllRoles();
     }
 }
