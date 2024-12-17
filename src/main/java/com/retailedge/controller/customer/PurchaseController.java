@@ -18,22 +18,22 @@ public class PurchaseController {
     private PurchaseService purchaseService;
 
     @GetMapping
-    public List<Purchase> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return purchaseService.list();
     }
 
     @GetMapping("/{customerId}")
-    public List<Purchase> findByCustomer(@PathVariable("customerId") Integer customerId){
+    public ResponseEntity<ResponseModel<?>> findByCustomer(@PathVariable("customerId") Integer customerId){
         return purchaseService.findByCustomer(customerId);
     }
 
     @PostMapping
-    public Purchase add(@RequestBody PurchaseDto purchaseDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody PurchaseDto purchaseDto){
         return purchaseService.add(purchaseDto);
     }
 
     @PutMapping("/{purchaseId}")
-    public Purchase update(@PathVariable("purchaseId") Integer purchaseId, @RequestBody PurchaseDto purchaseDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("purchaseId") Integer purchaseId, @RequestBody PurchaseDto purchaseDto){
         return purchaseService.update(purchaseId, purchaseDto);
     }
 

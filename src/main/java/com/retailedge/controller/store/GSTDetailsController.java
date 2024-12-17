@@ -17,17 +17,17 @@ public class GSTDetailsController {
     public GSTDetailsService gstDetailsService;
 
     @GetMapping
-    public List<GSTDetails> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return gstDetailsService.list();
     }
 
     @PostMapping
-    public GSTDetails add(@RequestBody GSTDetailsDto gstDetailsDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody GSTDetailsDto gstDetailsDto){
         return gstDetailsService.add(gstDetailsDto);
     }
 
     @PutMapping("/{gstDetailsId}")
-    public GSTDetails update(@PathVariable("gstDetailsId") Integer gstDetailsId, @RequestBody GSTDetailsDto gstDetailsDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("gstDetailsId") Integer gstDetailsId, @RequestBody GSTDetailsDto gstDetailsDto){
         return gstDetailsService.update(gstDetailsId, gstDetailsDto);
     }
 

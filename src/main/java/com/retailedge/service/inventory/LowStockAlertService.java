@@ -4,6 +4,7 @@ import com.retailedge.dto.inventory.LowStockAlertDto;
 import com.retailedge.entity.inventory.LowStockAlert;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.inventory.LowStockAlertRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,29 +23,43 @@ public class LowStockAlertService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<LowStockAlert> list() {
-        return lowStockAlertRepository.findAll();
-    }
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
 
-    public LowStockAlert add(LowStockAlertDto lowStockAlertDto) {
-        LowStockAlert lowStockAlert = new LowStockAlert();
-        modelMapper.map(lowStockAlertDto, lowStockAlert);
-        return lowStockAlertRepository.save(lowStockAlert);
-    }
-
-    public LowStockAlert update(Integer lowStockAlertId, LowStockAlertDto lowStockAlertDto) {
-
-        Optional<LowStockAlert> lowStockAlertOptional = lowStockAlertRepository.findById(lowStockAlertId);
-
-        if (!lowStockAlertOptional.isPresent()) {
-            throw new RuntimeException("Product not found with id: " + lowStockAlertId);
+    public ResponseEntity<ResponseModel<?>> list() {
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, lowStockAlertRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving low stock alert details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
+    }
 
-        LowStockAlert lowStockAlert = lowStockAlertOptional.get();
+    public ResponseEntity<ResponseModel<?>> add(LowStockAlertDto lowStockAlertDto) {
+        try{
+            LowStockAlert lowStockAlert = new LowStockAlert();
+            modelMapper.map(lowStockAlertDto, lowStockAlert);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, lowStockAlertRepository.save(lowStockAlert)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding low stock alert details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
 
-        modelMapper.map(lowStockAlertDto, lowStockAlert);
-
-        return lowStockAlertRepository.save(lowStockAlert);
+    public ResponseEntity<ResponseModel<?>> update(Integer lowStockAlertId, LowStockAlertDto lowStockAlertDto) {
+        try{
+            Optional<LowStockAlert> lowStockAlertOptional = lowStockAlertRepository.findById(lowStockAlertId);
+            if (lowStockAlertOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Low stock alert not found!", 500));
+            }
+            LowStockAlert lowStockAlert = lowStockAlertOptional.get();
+            modelMapper.map(lowStockAlertDto, lowStockAlert);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, lowStockAlertRepository.save(lowStockAlert)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating low stock alert details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer lowStockAlertId) throws Exception {
@@ -52,7 +67,7 @@ public class LowStockAlertService {
             if (!lowStockAlertRepository.existsById(lowStockAlertId)) {
                 // Return 404 Not Found
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseModel<>(false, "Low stock alert not found", 404));
+                        .body(new ResponseModel<>(false, "Low stock alert not found!", 404));
             }
             lowStockAlertRepository.deleteById(lowStockAlertId);
             // Return 200 OK if the category is deleted successfully

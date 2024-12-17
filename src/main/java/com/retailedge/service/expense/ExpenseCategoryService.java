@@ -6,6 +6,7 @@ import com.retailedge.entity.expense.ExpenseCategory;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.expense.ExpenseCategoryRepository;
 import com.retailedge.repository.expense.ExpenseRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,30 +29,48 @@ public class ExpenseCategoryService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<ExpenseCategory> list(){
-        return expenseCategoryRepository.findAll();
-    }
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
 
-    public ExpenseCategory add(ExpenseCategoryDto expenseCategoryeDto) {
-        ExpenseCategory expenseCategory = modelMapper.map(expenseCategoryeDto, ExpenseCategory.class);
-        return expenseCategoryRepository.save(expenseCategory);
-    }
-
-    public ExpenseCategory update(Long expenseCategoryId, ExpenseCategoryDto expenseCategoryDto) {
-        Optional<ExpenseCategory> optionalExpenseCategory = expenseCategoryRepository.findById(expenseCategoryId);
-
-        if (optionalExpenseCategory.isPresent()) {
-            ExpenseCategory expenseCategory = optionalExpenseCategory.get();
-            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-                return conditions.getSource() != null;
-            });
-            modelMapper.map(expenseCategoryDto, expenseCategory);
-            return expenseCategoryRepository.save(expenseCategory);
-
-        } else {
-            throw new RuntimeException("Expense not found!");
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, expenseCategoryRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving expense category details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
+    }
+
+    public ResponseEntity<ResponseModel<?>> add(ExpenseCategoryDto expenseCategoryDto) {
+        try{
+            ExpenseCategory expenseCategory = modelMapper.map(expenseCategoryDto, ExpenseCategory.class);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, expenseCategoryRepository.save(expenseCategory)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding expense category details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
+
+    public ResponseEntity<ResponseModel<?>> update(Long expenseCategoryId, ExpenseCategoryDto expenseCategoryDto) {
+        try{
+            Optional<ExpenseCategory> optionalExpenseCategory = expenseCategoryRepository.findById(expenseCategoryId);
+            if (optionalExpenseCategory.isPresent()) {
+                ExpenseCategory expenseCategory = optionalExpenseCategory.get();
+                modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+                modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                    return conditions.getSource() != null;
+                });
+                modelMapper.map(expenseCategoryDto, expenseCategory);
+                return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, expenseCategoryRepository.save(expenseCategory)));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Expense category not found! ", 500));
+            }
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating expense category details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+
 
     }
 

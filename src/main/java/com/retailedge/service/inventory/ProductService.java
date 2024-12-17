@@ -57,13 +57,18 @@ public class ProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
-    public List<Product> list(){
-        List<Product> productList = productRepository.findAll();
-        if(productList.isEmpty()){
-            kafkaConsumerService.consumeLowStockAlert("Low stock");
-            logger.info("Notification sent successfully: {}", "Low stock alert for products");
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            List<Product> productList = productRepository.findAll();
+//            if(productList.isEmpty()){
+//                kafkaConsumerService.consumeLowStockAlert("Low stock");
+//                logger.info("Notification sent successfully: {}", "Low stock alert for products");
+//            }
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, productRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving product details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        return productRepository.findAll();
     }
 
     public ResponseEntity<ResponseModel<?>> add(ProductDto productDto){
@@ -114,7 +119,7 @@ public class ProductService {
             String sanitizedMessage = exceptionHandlerUtil.sanitizeErrorMessage(originalMessage);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error Adding Product: " + sanitizedMessage, 500));
+                    .body(new ResponseModel<>(false, "Error adding product details: " + sanitizedMessage, 500));
         }
     }
 
@@ -123,7 +128,6 @@ public class ProductService {
 
         try{
             Optional<Product> productOptional = productRepository.findById(productId);
-
             if (productOptional.isEmpty()) {
                 throw new RuntimeException("Product not found with id: " + productId);
             }
@@ -136,7 +140,7 @@ public class ProductService {
             return ResponseEntity.ok(new ResponseModel<>(true, "Added successfully", 200, productRepository.save(product)));
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error Adding Product: " + e.getMessage(), 500));
+                    .body(new ResponseModel<>(false, "Error updating product details: " + e.getMessage(), 500));
         }
     }
 
@@ -145,7 +149,7 @@ public class ProductService {
             if (!productRepository.existsById(productId)) {
                 // Return 404 Not Found
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseModel<>(false, "Product not found", 404));
+                        .body(new ResponseModel<>(false, "Product not found!", 404));
             }
             productRepository.deleteById(productId);
             // Return 200 OK if the category is deleted successfully
@@ -157,55 +161,61 @@ public class ProductService {
         }
     }
 
-    public void bulkUpload(MultipartFile file) throws Exception {
-        List<Product> productList = new ArrayList<>();
+    public ResponseEntity<ResponseModel<?>> bulkUpload(MultipartFile file){
+        try{
+            List<Product> productList = new ArrayList<>();
 
-        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
 
-            Sheet sheet = workbook.getSheetAt(0);
+                Sheet sheet = workbook.getSheetAt(0);
 
-            Map<String, Integer> headerMap = new HashMap<>();
+                Map<String, Integer> headerMap = new HashMap<>();
 
-            Row headerRow = sheet.getRow(0);
-            for (Cell cell : headerRow) {
-                headerMap.put(cell.getStringCellValue().toLowerCase(), cell.getColumnIndex());
-            }
-
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                String name = row.getCell(headerMap.get("Name")).getStringCellValue();
-                Double actualPrice = row.getCell(headerMap.get("Actual Price")).getNumericCellValue();
-                Double sellingPrice = row.getCell(headerMap.get("Selling Price")).getNumericCellValue();
-                String categoryName = row.getCell(headerMap.get("Category")).getStringCellValue();
-                int stockLevel = (int) row.getCell(headerMap.get("Stock Level")).getNumericCellValue();
-                String brand = row.getCell(headerMap.get("Brand")).getStringCellValue();
-                String model = row.getCell(headerMap.get("Model")).getStringCellValue();
-                BigDecimal taxRate = BigDecimal.valueOf(row.getCell(headerMap.get("Tax Rate")).getNumericCellValue());
-                String barcode = row.getCell(headerMap.get("Barcode")).getStringCellValue();
-                int lowStockThreshold = (int) row.getCell(headerMap.get("Low Stock Threshold")).getNumericCellValue();
-
-                Category category = categoryRepository.findByCategory(categoryName);
-                if (category == null) {
-                    throw new Exception("Category not found: " + categoryName);
+                Row headerRow = sheet.getRow(0);
+                for (Cell cell : headerRow) {
+                    headerMap.put(cell.getStringCellValue().toLowerCase(), cell.getColumnIndex());
                 }
 
-                Product product = new Product();
-                product.setProductName(name);
-                product.setActualPrice(actualPrice);
-                product.setSellingPrice(sellingPrice);
-                product.setCategory(category);
-                product.setStockLevel(stockLevel);
-                product.setBrand(brand);
-                product.setModel(model);
-//              product.setBarcode(barcode);
-                product.setLowStockThreshold(lowStockThreshold);
+                for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                    Row row = sheet.getRow(i);
+                    String name = row.getCell(headerMap.get("Name")).getStringCellValue();
+                    Double actualPrice = row.getCell(headerMap.get("Actual Price")).getNumericCellValue();
+                    Double sellingPrice = row.getCell(headerMap.get("Selling Price")).getNumericCellValue();
+                    String categoryName = row.getCell(headerMap.get("Category")).getStringCellValue();
+                    int stockLevel = (int) row.getCell(headerMap.get("Stock Level")).getNumericCellValue();
+                    String brand = row.getCell(headerMap.get("Brand")).getStringCellValue();
+                    String model = row.getCell(headerMap.get("Model")).getStringCellValue();
+                    BigDecimal taxRate = BigDecimal.valueOf(row.getCell(headerMap.get("Tax Rate")).getNumericCellValue());
+                    String barcode = row.getCell(headerMap.get("Barcode")).getStringCellValue();
+                    int lowStockThreshold = (int) row.getCell(headerMap.get("Low Stock Threshold")).getNumericCellValue();
 
-                productList.add(product);
+                    Category category = categoryRepository.findByCategory(categoryName);
+                    if (category == null) {
+                        throw new Exception("Category not found: " + categoryName);
+                    }
+
+                    Product product = new Product();
+                    product.setProductName(name);
+                    product.setActualPrice(actualPrice);
+                    product.setSellingPrice(sellingPrice);
+                    product.setCategory(category);
+                    product.setStockLevel(stockLevel);
+                    product.setBrand(brand);
+                    product.setModel(model);
+//              product.setBarcode(barcode);
+                    product.setLowStockThreshold(lowStockThreshold);
+
+                    productList.add(product);
+                }
+            } catch (Exception e) {
+                throw new Exception("Error processing Excel file", e);
             }
-        } catch (Exception e) {
-            throw new Exception("Error processing Excel file", e);
+            productRepository.saveAll(productList);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Product details uploaded successfully!", 200));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error uploading product details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        productRepository.saveAll(productList);
     }
 
     public void updateProductQuantity(Product product, Integer quantity) {

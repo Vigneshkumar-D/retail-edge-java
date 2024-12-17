@@ -35,19 +35,18 @@ public class StockTransactionService {
     public StockTransaction add(StockTransactionDto stockTransactionDto){
         StockTransaction stockTransaction = new StockTransaction();
         Product product = productRepository.findById(stockTransactionDto.getProduct().getId()).get();
-        System.out.println("pro" +product.getActualPrice());
         modelMapper.map(stockTransactionDto, stockTransaction);
         stockTransaction.setProduct(product);
+        product.setStockLevel(product.getStockLevel() - stockTransactionDto.getQuantity());
+        productRepository.save(product);
         return stockTransactionRepository.save(stockTransaction);
     }
 
     public StockTransaction update(Integer stockTransactionId,  StockTransactionDto stockTransactionDto){
         Optional<StockTransaction> stockTransactionOptional = stockTransactionRepository.findById(stockTransactionId);
-
-        if (!stockTransactionOptional.isPresent()) {
+        if (stockTransactionOptional.isEmpty()) {
             throw new RuntimeException("Product not found with id: " + stockTransactionId);
         }
-
         StockTransaction stockTransaction = stockTransactionOptional.get();
 
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);

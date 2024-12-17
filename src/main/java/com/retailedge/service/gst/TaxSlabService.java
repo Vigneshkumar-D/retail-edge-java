@@ -4,6 +4,7 @@ import com.retailedge.entity.gst.TaxSlab;
 import com.retailedge.dto.gst.TaxSlabDto;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.gst.TaxSlabRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,10 @@ public class TaxSlabService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+
     public BigDecimal calculateGST(String category, String region, BigDecimal price, boolean isInterstate) {
         TaxSlab taxSlab = taxSlabRepository.findByCategory_CategoryAndRegion(category, region);
 
@@ -36,28 +41,39 @@ public class TaxSlabService {
         }
     }
 
-    public TaxSlab add(TaxSlabDto taxSlabDto) {
-        TaxSlab taxSlab = modelMapper.map(taxSlabDto, TaxSlab.class);
-        System.out.println("tax "+taxSlab.getRegion());
-        return taxSlabRepository.save(taxSlab);
-    }
-
-    public List<TaxSlab> list() {
-        return taxSlabRepository.findAll();
-    }
-
-    public TaxSlab update(Long taxSlabId, TaxSlabDto taxSlabDto) {
-        Optional<TaxSlab> taxSlabOptional = taxSlabRepository.findById(taxSlabId);
-
-        if (!taxSlabOptional.isPresent()) {
-            throw new RuntimeException("Tax Slab not found with id: " + taxSlabId);
+    public ResponseEntity<ResponseModel<?>> list() {
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, taxSlabRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving tax slab details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
+    }
 
-        TaxSlab taxSlab = taxSlabOptional.get();
+    public ResponseEntity<ResponseModel<?>> add(TaxSlabDto taxSlabDto) {
+        try{
+            TaxSlab taxSlab = modelMapper.map(taxSlabDto, TaxSlab.class);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, taxSlabRepository.save(taxSlab)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding tax slab details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
 
-        modelMapper.map(taxSlabDto, taxSlab);
-
-        return taxSlabRepository.save(taxSlab);
+    public ResponseEntity<ResponseModel<?>> update(Long taxSlabId, TaxSlabDto taxSlabDto) {
+        try{
+            Optional<TaxSlab> taxSlabOptional = taxSlabRepository.findById(taxSlabId);
+            if (taxSlabOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Tax Slab not found!", 500));
+            }
+            TaxSlab taxSlab = taxSlabOptional.get();
+            modelMapper.map(taxSlabDto, taxSlab);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, taxSlabRepository.save(taxSlab)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding tax slab details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Long taxSlabId) throws Exception {

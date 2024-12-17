@@ -4,6 +4,7 @@ import com.retailedge.dto.customer.PurchaseDto;
 import com.retailedge.entity.customer.Purchase;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.customer.PurchaseRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,32 +20,51 @@ public class PurchaseService {
     @Autowired
     private PurchaseRepository purchaseRepository;
 
-
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<Purchase> list(){
-        return purchaseRepository.findAll();
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving purchase: " +exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public Purchase add(PurchaseDto purchaseDto){
-        Purchase purchase = new Purchase();
-        modelMapper.map(purchaseDto, purchase);
-        return purchaseRepository.save(purchase);
+    public ResponseEntity<ResponseModel<?>> add(PurchaseDto purchaseDto){
+        try{
+            Purchase purchase = new Purchase();
+            modelMapper.map(purchaseDto, purchase);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseRepository.save(purchase)));
+
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding purchase: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public Purchase update(Integer purchaseId, PurchaseDto purchaseDto){
-        Optional<Purchase> purchaseOptional = purchaseRepository.findById(purchaseId);
+    public ResponseEntity<ResponseModel<?>> update(Integer purchaseId, PurchaseDto purchaseDto){
+        try{
+            Optional<Purchase> purchaseOptional = purchaseRepository.findById(purchaseId);
+            if (purchaseOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Purchase Details not found with id: " + purchaseId, 500));
 
-        if (!purchaseOptional.isPresent()) {
-            throw new RuntimeException("Purchase Details not found with id: " + purchaseId);
+            }
+            Purchase purchase = purchaseOptional.get();
+            modelMapper.map(purchaseDto, purchase);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseRepository.save(purchase)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating purchase: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
 
-        Purchase purchase = purchaseOptional.get();
 
-        modelMapper.map(purchaseDto, purchase);
 
-        return purchaseRepository.save(purchase);
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer purchaseId) throws Exception {
@@ -60,13 +80,17 @@ public class PurchaseService {
         } catch (Exception e) {
             // Return 500 Internal Server Error for any unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error deleting Purchase: " + e.getMessage(), 500));
+                    .body(new ResponseModel<>(false, "Error deleting Purchase: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
 
+    public ResponseEntity<ResponseModel<?>> findByCustomer(Integer invoiceId) {
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseRepository.findByInvoiceId(invoiceId)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding purchase: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
 
-    public List<Purchase> findByCustomer(Integer invoiceId) {
-
-        return purchaseRepository.findByInvoiceId(invoiceId);
     }
 }

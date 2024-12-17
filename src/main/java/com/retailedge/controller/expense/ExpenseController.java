@@ -20,17 +20,17 @@ public class ExpenseController {
     private ExpenseService expenseService;
 
     @GetMapping
-    public List<Expense> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return expenseService.list();
     }
 
     @PostMapping
-    public Expense add(@RequestBody ExpenseDto expenseDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody ExpenseDto expenseDto){
         return expenseService.add(expenseDto);
     }
 
     @PutMapping("{expenseId}")
-    public Expense update(@RequestBody ExpenseDto expenseDto, @PathVariable("expenseId") Long expenseId){
+    public ResponseEntity<ResponseModel<?>> update(@RequestBody ExpenseDto expenseDto, @PathVariable("expenseId") Long expenseId){
         return expenseService.update(expenseId, expenseDto);
     }
 

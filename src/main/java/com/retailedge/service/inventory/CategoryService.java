@@ -4,6 +4,7 @@ import com.retailedge.entity.inventory.Category;
 import com.retailedge.dto.inventory.*;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.inventory.*;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,26 +25,42 @@ public class CategoryService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public Category add(CategoryDto categoryDto){
-        System.out.println("category ser "+ categoryDto.getCategory());
-        Category category = modelMapper.map(categoryDto,Category.class);
-        return categoryRepository.save(category);
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list() {
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, categoryRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving category details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public List<Category> list() {
-        return  categoryRepository.findAll();
+    public ResponseEntity<ResponseModel<?>> add(CategoryDto categoryDto){
+        try{
+            Category category = modelMapper.map(categoryDto,Category.class);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, categoryRepository.save(category)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding category details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public Category update(Long categoryId, CategoryDto categoryDto) {
-        Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
-        Category category =  categoryOptional.get();
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
-        modelMapper.map(categoryDto,category);
-        return categoryRepository.save(category);
-
+    public ResponseEntity<ResponseModel<?>> update(Long categoryId, CategoryDto categoryDto) {
+        try{
+            Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+            Category category =  categoryOptional.get();
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                return conditions.getSource() != null;
+            });
+            modelMapper.map(categoryDto,category);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, categoryRepository.save(category)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating category details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
 

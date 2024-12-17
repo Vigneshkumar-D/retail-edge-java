@@ -20,17 +20,17 @@ public class LowStockAlertController {
 
 
     @GetMapping
-    public List<LowStockAlert> lost(){
+    public ResponseEntity<ResponseModel<?>> lost(){
         return  lowStockAlertService.list();
     }
 
     @PostMapping
-    public LowStockAlert add(LowStockAlertDto lowStockAlertDto){
+    public ResponseEntity<ResponseModel<?>> add(LowStockAlertDto lowStockAlertDto){
         return lowStockAlertService.add(lowStockAlertDto);
     }
 
     @PutMapping("/{lowStockAlertId}")
-    public  LowStockAlert update(@PathVariable("lowStockAlertId") Integer lowStockAlertId, @RequestBody LowStockAlertDto lowStockAlertDto){
+    public  ResponseEntity<ResponseModel<?>> update(@PathVariable("lowStockAlertId") Integer lowStockAlertId, @RequestBody LowStockAlertDto lowStockAlertDto){
         return  lowStockAlertService.update(lowStockAlertId, lowStockAlertDto);
     }
 

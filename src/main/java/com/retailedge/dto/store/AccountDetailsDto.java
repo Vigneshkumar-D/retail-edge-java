@@ -23,8 +23,7 @@ public class AccountDetailsDto {
 
     private String upiId;
 
-    private Double ifscCode;
+    private String ifscCode;
 
-    @Schema(type = "string", format = "binary", description = "Upload the UPI QR Code")
-    private MultipartFile upiQRCode;
+    private MultipartFile upiQRCodeImage;
 }

@@ -8,6 +8,7 @@ import com.retailedge.dto.emi.EMIDetailsDto;
 import com.retailedge.entity.emi.EMIDetails;
 import com.retailedge.repository.emi.EMIDetailsRepository;
 import com.retailedge.repository.inventory.ProductRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,8 +33,16 @@ public class EMIDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<EMIDetails> list(){
-        return emiDetailsRepository.findAll();
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, emiDetailsRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving emi details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
 //    public EMIDetails add(EMIDetailsDto emiDetailsDto){
@@ -49,59 +58,68 @@ public class EMIDetailsService {
 //        return emiDetailsRepository.save(emiDetails);
 //    }
 
-    public EMIDetails add(EMIDetailsDto emiDetailsDto) {
-        EMIDetails emiDetails = new EMIDetails();
+    public ResponseEntity<ResponseModel<?>> add(EMIDetailsDto emiDetailsDto) {
+        try{
+            EMIDetails emiDetails = new EMIDetails();
+            emiDetails.setTotalAmount(emiDetailsDto.getTotalAmount());
+            emiDetails.setEmiAmount(emiDetailsDto.getEmiAmount());
+            emiDetails.setUpfront(emiDetailsDto.getUpfront());
+            emiDetails.setScheme(emiDetailsDto.getScheme());
+            emiDetails.setStartDate(emiDetailsDto.getStartDate());
+            emiDetails.setEndDate(emiDetailsDto.getEndDate());
+            emiDetails.setDescription(emiDetailsDto.getDescription());
 
-        emiDetails.setTotalAmount(emiDetailsDto.getTotalAmount());
-        emiDetails.setEmiAmount(emiDetailsDto.getEmiAmount());
-        emiDetails.setUpfront(emiDetailsDto.getUpfront());
-        emiDetails.setScheme(emiDetailsDto.getScheme());
-        emiDetails.setStartDate(emiDetailsDto.getStartDate());
-        emiDetails.setEndDate(emiDetailsDto.getEndDate());
-        emiDetails.setDescription(emiDetailsDto.getDescription());
+            Optional<Customer> optionalCustomer = customerRepository.findById(emiDetailsDto.getCustomer().getId());
+            if (optionalCustomer.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Customer not found", 500));
+            }
+            Customer customer = optionalCustomer.get();
+            emiDetails.setCustomer(customer);
 
-        // Set the customer manually
-        Customer customer = customerRepository.findById(emiDetailsDto.getCustomer().getId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-        emiDetails.setCustomer(customer);
+            Optional<Product> optionalProduct = productRepository.findById(Math.toIntExact(emiDetailsDto.getProduct().getId()));
+            if (optionalProduct.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Product not found", 500));
+            }
+            Product product = optionalProduct.get();
+            emiDetails.setProduct(product);
 
-        // Set the product manually
-        Product product = productRepository.findById(Math.toIntExact(emiDetailsDto.getProduct().getId()))
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-        emiDetails.setProduct(product);
-
-        // Save the entity
-        return emiDetailsRepository.save(emiDetails);
-    }
-
-
-
-    public EMIDetails update(Integer emiDetailsId, EMIDetailsDto emiDetailsDto){
-        Optional<EMIDetails> emiDetailsOptional = emiDetailsRepository.findById(emiDetailsId);
-        if (!emiDetailsOptional.isPresent()) {
-            throw new RuntimeException("EMI Details not found with id: " + emiDetailsId);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, emiDetailsRepository.save(emiDetails)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding emi details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        EMIDetails emiDetails = emiDetailsOptional.get();
-        modelMapper.map(emiDetailsDto, emiDetails);
-        return emiDetailsRepository.save(emiDetails);
     }
 
+    public ResponseEntity<ResponseModel<?>> update(Integer emiDetailsId, EMIDetailsDto emiDetailsDto){
+        try{
+            Optional<EMIDetails> emiDetailsOptional = emiDetailsRepository.findById(emiDetailsId);
+            if (emiDetailsOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "EMI Details not found", 500));
+            }
+            EMIDetails emiDetails = emiDetailsOptional.get();
+            modelMapper.map(emiDetailsDto, emiDetails);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, emiDetailsRepository.save(emiDetails)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating emi details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+
+    }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer emiDetailsId) throws Exception {
         try {
             if (!emiDetailsRepository.existsById(emiDetailsId)) {
-                // Return 404 Not Found
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseModel<>(false, "EMI Details not found", 404));
             }
             emiDetailsRepository.deleteById(emiDetailsId);
-            // Return 200 OK if the category is deleted successfully
             return ResponseEntity.ok(new ResponseModel<>(true, "Deleted successfully", 200));
         } catch (Exception e) {
-            // Return 500 Internal Server Error for any unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error deleting EMI Details: " + e.getMessage(), 500));
+                    .body(new ResponseModel<>(false, "Error deleting EMI Details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
-
 }

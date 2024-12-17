@@ -19,18 +19,18 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @PostMapping
-    public Category add(@RequestBody CategoryDto categoryDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody CategoryDto categoryDto){
         System.out.println("categoty "+ categoryDto.getCategory());
          return  categoryService.add(categoryDto);
     }
 
     @GetMapping
-    public List<Category> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return categoryService.list();
     }
 
     @PutMapping("/{categoryId}")
-    public Category update(@PathVariable(name = "categoryId") Long categoryId, @RequestBody CategoryDto categoryDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable(name = "categoryId") Long categoryId, @RequestBody CategoryDto categoryDto){
         return categoryService.update(categoryId, categoryDto);
     }
 

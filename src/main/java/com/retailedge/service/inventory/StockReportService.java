@@ -17,7 +17,7 @@ public class StockReportService {
 
     @Autowired
     private ProductRepository productRepository;
-    
+
     public List<StockReport> list(){
         List<Product> productList = productRepository.findAllByStatus(ProductStatus.IN_STOCK);
         List<StockReport> stockReportList = new ArrayList<>();

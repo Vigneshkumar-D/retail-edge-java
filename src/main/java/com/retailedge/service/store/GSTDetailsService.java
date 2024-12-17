@@ -4,6 +4,7 @@ import com.retailedge.dto.store.GSTDetailsDto;
 import com.retailedge.entity.store.GSTDetails;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.store.GSTDetailsRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,26 +23,47 @@ public class GSTDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<GSTDetails> list(){
-        return gstDetailsRepository.findAll();
-    }
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
 
-    public GSTDetails add(GSTDetailsDto gstDetailsDto){
-        return gstDetailsRepository.save(modelMapper.map(gstDetailsDto, GSTDetails.class));
-    }
-
-    public GSTDetails update(Integer gstDetailsId,  GSTDetailsDto gstDetailsDto) {
-        GSTDetails  gstDetails = gstDetailsRepository.findById(gstDetailsId).orElse(null);
-        if (gstDetails == null) {
-            return null;
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, gstDetailsRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving gst details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
+    }
 
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
-        modelMapper.map(gstDetailsDto, gstDetails);
-        return gstDetailsRepository.save(gstDetails);
+
+    public ResponseEntity<ResponseModel<?>> add(GSTDetailsDto gstDetailsDto){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, gstDetailsRepository.save(modelMapper.map(gstDetailsDto, GSTDetails.class))));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding gst details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
+
+    public ResponseEntity<ResponseModel<?>> update(Integer gstDetailsId,  GSTDetailsDto gstDetailsDto) {
+
+        try{
+            GSTDetails  gstDetails = gstDetailsRepository.findById(gstDetailsId).orElse(null);
+            if (gstDetails == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseModel<>(false, "GST details not found!", 400));
+            }
+
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                return conditions.getSource() != null;
+            });
+            modelMapper.map(gstDetailsDto, gstDetails);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Updated Successfully", 200, gstDetailsRepository.save(gstDetails)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating gst details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer gstDetailsId) throws Exception {

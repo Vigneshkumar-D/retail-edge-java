@@ -33,6 +33,9 @@ public class User {
     @Email(message = "Email should be valid")
     private String email;
 
+    @Lob
+    private byte[] profileImage;
+
     @Column(nullable = false, unique = true)
     private String mobileNumber;
 

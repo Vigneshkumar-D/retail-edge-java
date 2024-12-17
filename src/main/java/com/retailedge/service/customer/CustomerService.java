@@ -4,6 +4,7 @@ import com.retailedge.dto.customer.CustomerDto;
 import com.retailedge.entity.customer.Customer;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.customer.CustomerRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.apache.poi.ss.formula.functions.T;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -24,34 +25,51 @@ public class CustomerService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<Customer> list(){
-        return customerRepository.findAll();
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, customerRepository.findAll()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error fetching data: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public Customer add(CustomerDto customerDto){
-        Customer exstingCustomer = customerRepository.findByPhoneNumber(customerDto.getPhoneNumber());
-        if(exstingCustomer==null){
-            Customer customer =  modelMapper.map(customerDto, Customer.class);
-            return customerRepository.save(customer);
+    public ResponseEntity<ResponseModel<?>> add(CustomerDto customerDto){
+        try{
+            Customer exstingCustomer = customerRepository.findByPhoneNumber(customerDto.getPhoneNumber());
+            if(exstingCustomer==null){
+                Customer customer =  modelMapper.map(customerDto, Customer.class);
+                return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, customerRepository.save(customer)));
+            }
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, exstingCustomer));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding customer: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        return exstingCustomer;
     }
 
-    public Customer update(Integer customerId, CustomerDto customerDto){
-        Optional<Customer> customerOptional = customerRepository.findById(customerId);
-        if (!customerOptional.isPresent()) {
-            throw new RuntimeException("Customer Details not found with id: " + customerId);
+    public ResponseEntity<ResponseModel<?>> update(Integer customerId, CustomerDto customerDto){
+        try{
+            Optional<Customer> customerOptional = customerRepository.findById(customerId);
+            if (customerOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Customer Details not found with id: " + customerId, 500));
+            }
+            Customer customer = customerOptional.get();
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                return conditions.getSource() != null;
+            });
+            modelMapper.map(customerDto, customer);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, customerRepository.save(customer)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating customer: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
 
-        Customer customer = customerOptional.get();
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
-
-        modelMapper.map(customerDto, customer);
-
-        return customerRepository.save(customer);
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer customerId) {
@@ -70,7 +88,7 @@ public class CustomerService {
         } catch (Exception e) {
             // Return 500 Internal Server Error
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error deleting Customer: " + e.getMessage(), 500));
+                    .body(new ResponseModel<>(false, "Error deleting customer: " + e.getMessage(), 500));
         }
     }
 

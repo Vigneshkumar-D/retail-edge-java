@@ -21,7 +21,7 @@ public class GSTDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String GSTIN;
+    private String gstin;
 
     private String legalName;
 
@@ -31,6 +31,6 @@ public class GSTDetails {
 
     private String state;
 
-    private Double jurisdiction;
+    private String jurisdiction;
 
 }

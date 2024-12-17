@@ -21,7 +21,7 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    public List<Product> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return productService.list();
     }
 
@@ -41,16 +41,11 @@ public class ProductController {
     }
 
     @PostMapping("/bulk-upload")
-    public ResponseEntity<String> bulkUpload(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ResponseModel<?>> bulkUpload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File is empty.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseModel<>(false, "File is empty!", 400));
         }
-
-        try {
-            productService.bulkUpload(file);
-            return ResponseEntity.ok("Products uploaded successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading products: " + e.getMessage());
-        }
+        return productService.bulkUpload(file);
     }
 }

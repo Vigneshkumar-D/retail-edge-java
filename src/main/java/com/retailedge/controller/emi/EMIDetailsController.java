@@ -18,17 +18,17 @@ public class EMIDetailsController {
     private EMIDetailsService emiDetailsService;
 
     @GetMapping
-    public List<EMIDetails> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return emiDetailsService.list();
     }
 
     @PostMapping
-    public EMIDetails add(@RequestBody EMIDetailsDto emiDetailsDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody EMIDetailsDto emiDetailsDto){
         return emiDetailsService.add(emiDetailsDto);
     }
 
     @PutMapping("/{emiDetailsId}")
-    public EMIDetails update(@PathVariable("emiDetailsId") Integer emiDetailsId, @RequestBody EMIDetailsDto emiDetailsDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("emiDetailsId") Integer emiDetailsId, @RequestBody EMIDetailsDto emiDetailsDto){
         return emiDetailsService.update(emiDetailsId, emiDetailsDto);
     }
 

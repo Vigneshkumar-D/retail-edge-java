@@ -21,17 +21,17 @@ public class ExpenseCategoryController {
     private ExpenseCategoryService expenseCategoryService;
 
     @GetMapping
-    public List<ExpenseCategory> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return expenseCategoryService.list();
     }
 
     @PostMapping
-    public ExpenseCategory add(@RequestBody ExpenseCategoryDto expenseCategoryDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody ExpenseCategoryDto expenseCategoryDto){
         return expenseCategoryService.add(expenseCategoryDto);
     }
 
     @PutMapping("{expenseId}")
-    public ExpenseCategory update(@RequestBody ExpenseCategoryDto expenseCategoryDto, @PathVariable("expenseId") Long expenseCategoryId){
+    public ResponseEntity<ResponseModel<?>> update(@RequestBody ExpenseCategoryDto expenseCategoryDto, @PathVariable("expenseId") Long expenseCategoryId){
         return expenseCategoryService.update(expenseCategoryId, expenseCategoryDto);
     }
 

@@ -2,10 +2,12 @@ package com.retailedge.service.ordertrack;
 
 import com.retailedge.dto.ordertrack.OrderDto;
 import com.retailedge.dto.ordertrack.OrderItemDto;
+import com.retailedge.entity.customer.Customer;
 import com.retailedge.entity.ordertrack.Order;
 import com.retailedge.entity.ordertrack.OrderItem;
 import com.retailedge.entity.user.User;
 import com.retailedge.model.ResponseModel;
+import com.retailedge.repository.customer.CustomerRepository;
 import com.retailedge.repository.ordertrack.OrderRepository;
 import com.retailedge.repository.user.UserRepository;
 import com.retailedge.service.customer.CustomerService;
@@ -35,7 +37,7 @@ public class OrderService {
     private ModelMapper modelMapper;
 
     @Autowired
-    private CustomerService customerService;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private OrderNumberUtil orderNumberUtil;
@@ -50,7 +52,8 @@ public class OrderService {
 
     public Order add(OrderDto orderDto) {
         Order order = modelMapper.map(orderDto, Order.class);
-        order.setCustomer(customerService.add(orderDto.getCustomer()));
+        Customer customer = modelMapper.map(orderDto.getCustomer(), Customer.class);
+        order.setCustomer(customerRepository.save(customer));
         order.setOrderNumber(orderNumberUtil.generateOrderNumber());
         order.setCreatedDate(Instant.now());
         Optional<User> user = userRepository.findById(orderDto.getUser().getId());

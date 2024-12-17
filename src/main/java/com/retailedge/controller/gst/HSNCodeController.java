@@ -19,17 +19,17 @@ public class HSNCodeController {
     private HSNCodeService hsnCodeService;
 
     @GetMapping
-    public List<HSNCode> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return hsnCodeService.list();
     }
 
     @PostMapping
-    public HSNCode add(@RequestBody HSNCodeDto hsnCodeDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody HSNCodeDto hsnCodeDto){
         return hsnCodeService.add(hsnCodeDto);
     }
 
     @PutMapping("/{hsnCodeId}")
-    public HSNCode update(@PathVariable("hsnCodeId") Long hsnCodeId, @RequestBody HSNCodeDto hsnCodeDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("hsnCodeId") Long hsnCodeId, @RequestBody HSNCodeDto hsnCodeDto){
         return hsnCodeService.update(hsnCodeId, hsnCodeDto);
     }
 

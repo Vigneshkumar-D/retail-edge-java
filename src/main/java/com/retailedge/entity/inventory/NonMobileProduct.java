@@ -24,4 +24,5 @@ public class NonMobileProduct extends Product {
 
     private String barcode;
 
+
 }

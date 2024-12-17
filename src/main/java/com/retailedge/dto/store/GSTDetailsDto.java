@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class GSTDetailsDto {
 
-    private String GSTIN;
+    private String gstin;
 
     private String legalName;
 
@@ -21,5 +21,5 @@ public class GSTDetailsDto {
 
     private String state;
 
-    private Double jurisdiction;
+    private String jurisdiction;
 }

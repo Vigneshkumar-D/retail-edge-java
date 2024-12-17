@@ -19,17 +19,17 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping
-    public List<Customer> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return customerService.list();
     }
 
     @PostMapping
-    public Customer add(@RequestBody CustomerDto customerDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody CustomerDto customerDto){
         return customerService.add(customerDto);
     }
 
     @PutMapping("/{customerId}")
-    public Customer update(@PathVariable("customerId") Integer customerId, @RequestBody CustomerDto customerDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("customerId") Integer customerId, @RequestBody CustomerDto customerDto){
         return customerService.update(customerId, customerDto);
     }
 

@@ -6,6 +6,7 @@ import com.retailedge.entity.customer.Customer;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.credit.CreditReminderRepository;
 import com.retailedge.repository.customer.CustomerRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,30 +29,51 @@ public class CreditReminderService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<CreditReminder> list(){
-        return creditReminderRepository.findAll();
-    }
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
 
-    public CreditReminder add(CreditReminderDto creditReminderDto){
-        CreditReminder creditReminder = modelMapper.map(creditReminderDto, CreditReminder.class);
-        return creditReminderRepository.save(creditReminder);
-
-    }
-
-    public CreditReminder update(Integer creditReminderId, CreditReminderDto creditReminderDto){
-        Optional<CreditReminder> creditReminderOptional = creditReminderRepository.findById(creditReminderId);
-        if (!creditReminderOptional.isPresent()) {
-            throw new RuntimeException("Credit Reminder Details not found with id: " + creditReminderId);
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, creditReminderRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error fetching data: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        CreditReminder creditReminder = creditReminderOptional.get();
-        Optional<Customer> customer = customerRepository.findById(creditReminder.getCustomer().getId());
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
-        modelMapper.map(creditReminderDto, creditReminder);
-        creditReminder.setCustomer(customer.get());
-        return creditReminderRepository.save(creditReminder);
+    }
+
+    public ResponseEntity<ResponseModel<?>> add(CreditReminderDto creditReminderDto){
+        try{
+            CreditReminder creditReminder = modelMapper.map(creditReminderDto, CreditReminder.class);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, creditReminderRepository.save(creditReminder)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Authentication Error: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+
+
+    }
+
+    public ResponseEntity<ResponseModel<?>> update(Integer creditReminderId, CreditReminderDto creditReminderDto){
+        try{
+            Optional<CreditReminder> creditReminderOptional = creditReminderRepository.findById(creditReminderId);
+            if (!creditReminderOptional.isPresent()) {
+                throw new RuntimeException("Credit Reminder Details not found with id: " + creditReminderId);
+            }
+            CreditReminder creditReminder = creditReminderOptional.get();
+            Optional<Customer> customer = customerRepository.findById(creditReminder.getCustomer().getId());
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                return conditions.getSource() != null;
+            });
+            modelMapper.map(creditReminderDto, creditReminder);
+            creditReminder.setCustomer(customer.get());
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success",200, creditReminderRepository.save(creditReminder)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Authentication Error: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+
+
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer creditReminderId) throws Exception {

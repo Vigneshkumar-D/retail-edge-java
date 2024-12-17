@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,13 +24,13 @@ public class PasswordManagement {
 
     private String token;
 
-    private LocalDateTime expiration;
+    private Instant expiration;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiration);
+        return Instant.now().isAfter(expiration);
     }
 }

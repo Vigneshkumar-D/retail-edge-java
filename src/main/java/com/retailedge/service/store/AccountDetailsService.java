@@ -4,6 +4,7 @@ import com.retailedge.dto.store.AccountDetailsDto;
 import com.retailedge.entity.store.AccountDetails;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.store.AccountDetailsRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -23,33 +26,77 @@ public class AccountDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<AccountDetails> list(){
-        return accountDetailsRepository.findAll();
-    }
 
-    public AccountDetails add(AccountDetailsDto accountDetailsDto) throws IOException {
-        AccountDetails accountDetails = modelMapper.map(accountDetailsDto, AccountDetails.class);
-        byte[] qrCodeBytes = accountDetailsDto.getUpiQRCode().getBytes();
-        accountDetails.setUpiQRCode(qrCodeBytes);
-        return accountDetailsRepository.save(accountDetails);
-    }
+//    public AccountDetails add(AccountDetailsDto accountDetailsDto) throws IOException {
+//        AccountDetails accountDetails = new AccountDetails();
+//        modelMapper.map(accountDetailsDto, accountDetails);
+//        if (accountDetailsDto.getUpiQRCode() != null && !accountDetailsDto.getUpiQRCode().isEmpty()) {
+//            accountDetails.setUpiQRCode(accountDetailsDto.getUpiQRCode().getBytes());
+//        }
+//        return accountDetailsRepository.save(accountDetails);
+//    }
 
-    public AccountDetails update(Integer accountDetailsId, AccountDetailsDto accountDetailsDto) {
-        AccountDetails  accountDetails = accountDetailsRepository.findById(accountDetailsId).orElse(null);
-        if (accountDetails == null) {
-            return null;
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving account details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
+    }
 
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
-        modelMapper.map(accountDetailsDto, accountDetails);
-        return accountDetailsRepository.save(accountDetails);
+    public ResponseEntity<ResponseModel<?>> add(AccountDetailsDto accountDetailsDto) throws IOException {
+        System.out.println("image "+ Arrays.toString(accountDetailsDto.getUpiQRCodeImage().getBytes()));
+        try{
+            AccountDetails accountDetails = new AccountDetails();
+            accountDetails.setBankName(accountDetailsDto.getBankName());
+            accountDetails.setBranch(accountDetailsDto.getBranch());
+            accountDetails.setAccountNumber(accountDetailsDto.getAccountNumber());
+            accountDetails.setUpiId(accountDetailsDto.getUpiId());
+            accountDetails.setIfscCode(accountDetailsDto.getIfscCode());
+            if (accountDetailsDto.getUpiQRCodeImage() != null && !accountDetailsDto.getUpiQRCodeImage().isEmpty()) {
+//                accountDetails.setUpiQRCodeImage(accountDetailsDto.getUpiQRCodeImage().getBytes());
+                byte[] decodedBytes = Base64.getDecoder().decode(accountDetailsDto.getUpiQRCodeImage().getBytes());
+                accountDetails.setUpiQRCodeImage(decodedBytes);
+            }
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.save(accountDetails)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding account details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
+
+    public ResponseEntity<ResponseModel<?>> update(Integer accountDetailsId, AccountDetailsDto accountDetailsDto) throws IOException {
+        try{
+            AccountDetails  accountDetails = accountDetailsRepository.findById(accountDetailsId).orElse(null);
+            if (accountDetails == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Account details not found!", 500));
+
+            }
+            accountDetails.setBankName(accountDetailsDto.getBankName());
+            accountDetails.setBranch(accountDetailsDto.getBranch());
+            accountDetails.setAccountNumber(accountDetailsDto.getAccountNumber());
+            accountDetails.setUpiId(accountDetailsDto.getUpiId());
+            accountDetails.setIfscCode(accountDetailsDto.getIfscCode());
+
+
+            if (accountDetailsDto.getUpiQRCodeImage() != null && !accountDetailsDto.getUpiQRCodeImage().isEmpty()) {
+                byte[] decodedBytes = Base64.getDecoder().decode(accountDetailsDto.getUpiQRCodeImage().getBytes());
+
+                accountDetails.setUpiQRCodeImage(decodedBytes);
+            }
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating account details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer accountDetailsId) throws Exception {
-
         try {
             if (!accountDetailsRepository.existsById(accountDetailsId)) {
                 // Return 404 Not Found

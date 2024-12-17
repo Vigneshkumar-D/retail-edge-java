@@ -19,23 +19,17 @@ public class AccountDetailsController {
     public AccountDetailsService accountDetailsService;
 
     @GetMapping
-    public List<AccountDetails> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return accountDetailsService.list();
     }
 
-//    @PostMapping
-//    public AccountDetails add(@RequestBody AccountDetailsDto accountDetailsDto){
-//        return accountDetailsService.add(accountDetailsDto);
-//    }
-
     @PostMapping(consumes = {"multipart/form-data"})
-    public AccountDetails add(@ModelAttribute AccountDetailsDto accountDetailsDto) throws IOException {
-        // Process the uploaded file and other data
+    public ResponseEntity<ResponseModel<?>> add(@ModelAttribute AccountDetailsDto accountDetailsDto) throws IOException {
         return accountDetailsService.add(accountDetailsDto);
     }
 
-    @PutMapping("/{accountDetailsId}")
-    public AccountDetails update(@PathVariable("accountDetailsId") Integer accountDetailsId, @RequestBody AccountDetailsDto accountDetailsDto){
+    @PutMapping(value = "/{accountDetailsId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("accountDetailsId") Integer accountDetailsId, @ModelAttribute AccountDetailsDto accountDetailsDto) throws IOException {
         return accountDetailsService.update(accountDetailsId, accountDetailsDto);
     }
 

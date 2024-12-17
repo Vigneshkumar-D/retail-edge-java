@@ -18,17 +18,17 @@ public class CreditReminderController {
     public CreditReminderService creditReminderService;
 
     @GetMapping
-    public List<CreditReminder> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return creditReminderService.list();
     }
 
     @PostMapping
-    public CreditReminder add(@RequestBody CreditReminderDto creditReminderDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody CreditReminderDto creditReminderDto){
         return creditReminderService.add(creditReminderDto);
     }
 
     @PutMapping("/{creditReminderId}")
-    public CreditReminder update(@PathVariable("creditReminderId") Integer creditReminderId, @RequestBody CreditReminderDto creditReminderDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("creditReminderId") Integer creditReminderId, @RequestBody CreditReminderDto creditReminderDto){
         return creditReminderService.update(creditReminderId, creditReminderDto);
     }
 

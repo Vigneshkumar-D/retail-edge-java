@@ -30,9 +30,7 @@ public class StoreDetails {
 
     private String secondaryPhone;
 
-    private Double ifscCode;
-
     @Lob
-    private byte[] storeLogo;
+    private byte[] storeLogoImage;
 
 }

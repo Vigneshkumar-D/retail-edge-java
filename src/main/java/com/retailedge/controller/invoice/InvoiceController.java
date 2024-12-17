@@ -25,7 +25,7 @@ public class InvoiceController {
     private InvoiceService invoiceService;
 
     @GetMapping
-    public List<Invoice> list(
+    public ResponseEntity<ResponseModel<?>> list(
             @RequestParam(required = false, name = "id")Integer id,
             @RequestParam(required = false, name = "customerName")String customerName,
             @RequestParam(required = false, name = "phoneNumber") String phoneNumber,
@@ -46,12 +46,12 @@ public class InvoiceController {
 
 
     @PostMapping
-    public Invoice add(@RequestBody InvoiceDto invoiceDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody InvoiceDto invoiceDto){
         return invoiceService.add(invoiceDto);
     }
 
     @PutMapping("/{invoiceId}")
-    public Invoice update(@PathVariable("invoiceId") Integer invoiceId, @RequestBody InvoiceDto invoiceDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("invoiceId") Integer invoiceId, @RequestBody InvoiceDto invoiceDto){
         return invoiceService.update(invoiceId, invoiceDto);
     }
 
@@ -61,7 +61,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/{invoiceNumber}")
-    public Invoice findByInvoiceNumber(@PathVariable("invoiceNumber") String invoiceNumber){
+    public ResponseEntity<ResponseModel<?>> findByInvoiceNumber(@PathVariable("invoiceNumber") String invoiceNumber){
         return invoiceService.findByInvoiceNumber(invoiceNumber);
     }
 }
