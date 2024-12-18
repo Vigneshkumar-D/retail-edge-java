@@ -11,10 +11,12 @@ import com.retailedge.entity.suppiler.Supplier;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.supplier.PurchaseOrderRepository;
 import com.retailedge.repository.supplier.SupplierRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -39,11 +41,6 @@ public class PurchaseOrderService {
 
     @Autowired
     private SupplierRepository supplierRepository;
-
-    public List<PurchaseOrder> list(){
-        return purchaseOrderRepository.findAll();
-    }
-
 
 //    @Transactional
 //    public PurchaseOrder add(PurchaseOrderDto purchaseOrderDto){
@@ -131,52 +128,73 @@ public class PurchaseOrderService {
 //    }
 //
 
+
+
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list() {
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving purchase order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
+
     @Transactional
-    public PurchaseOrder add(PurchaseOrderDto purchaseOrderDto) {
-        // Configure modelMapper
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> conditions.getSource() != null);
+    public ResponseEntity<ResponseModel<?>> add(PurchaseOrderDto purchaseOrderDto) {
+        try{
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> conditions.getSource() != null);
 
-        // Map PurchaseOrderDto to PurchaseOrder entity
-        PurchaseOrder purchaseOrder = modelMapper.map(purchaseOrderDto, PurchaseOrder.class);
+            // Map PurchaseOrderDto to PurchaseOrder entity
+            PurchaseOrder purchaseOrder = modelMapper.map(purchaseOrderDto, PurchaseOrder.class);
 
-        // Retrieve the supplier
-        Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplierId())
-                .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
+            // Retrieve the supplier
+            Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplierId())
+                    .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
 
-        // Set the supplier for the PurchaseOrder
-        purchaseOrder.setSupplier(supplier);
+            // Set the supplier for the PurchaseOrder
+            purchaseOrder.setSupplier(supplier);
 
-        // Update Supplier fields
-        supplier.setTotalOrderValue(supplier.getTotalOrderValue() + purchaseOrderDto.getOrderTotal());
-        supplier.setBalance(supplier.getBalance() + purchaseOrderDto.getOrderTotal());
-        supplierRepository.save(supplier);
+            // Update Supplier fields
+            supplier.setTotalOrderValue(supplier.getTotalOrderValue() + purchaseOrderDto.getOrderTotal());
+            supplier.setBalance(supplier.getBalance() + purchaseOrderDto.getOrderTotal());
+            supplierRepository.save(supplier);
 
-        // Convert PurchaseProductDto list to PurchaseProduct entities and set the purchaseOrder relationship
-        List<PurchaseProduct> purchaseProductList = new ArrayList<>();
-        for (PurchaseProductDto productDto : purchaseOrderDto.getPurchaseProductDto()) {
-            PurchaseProduct purchaseProduct = modelMapper.map(productDto, PurchaseProduct.class);
-            purchaseProduct.setPurchaseOrderId(purchaseOrder); // Set the relationship
-            purchaseProductList.add(purchaseProduct);
+            // Convert PurchaseProductDto list to PurchaseProduct entities and set the purchaseOrder relationship
+            List<PurchaseProduct> purchaseProductList = new ArrayList<>();
+            for (PurchaseProductDto productDto : purchaseOrderDto.getPurchaseProductDto()) {
+                PurchaseProduct purchaseProduct = modelMapper.map(productDto, PurchaseProduct.class);
+                purchaseProduct.setPurchaseOrderId(purchaseOrder); // Set the relationship
+                purchaseProductList.add(purchaseProduct);
+            }
+
+            purchaseOrder.setPurchaseProducts(purchaseProductList);
+
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.save(purchaseOrder)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving purchase order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-
-        // Set products to purchaseOrder
-        purchaseOrder.setPurchaseProducts(purchaseProductList);
-
-        // Save the purchase order with products
-        return purchaseOrderRepository.save(purchaseOrder);
     }
 
+    public ResponseEntity<ResponseModel<?>> update(Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto) {
+        try{
+            PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
+            if (purchaseOrder == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Purchase Order Details not found", 500));
+            }
+            modelMapper.map(purchaseOrderDto, purchaseOrder);
 
-    public PurchaseOrder update(Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto){
-        PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
-        if (purchaseOrder == null) {
-            throw new RuntimeException("Purchase Order Details not found with id: " + purchaseOrderId);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.save(purchaseOrder)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating purchase order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        modelMapper.map(purchaseOrderDto, purchaseOrder);
-        return purchaseOrderRepository.save(purchaseOrder);
     }
-
 
     public ResponseEntity<ResponseModel<?>> delete(Integer purchaseOrderId) throws Exception {
 
@@ -197,7 +215,13 @@ public class PurchaseOrderService {
     }
 
 
-    public List<PurchaseOrder> getLastThreeOrdersBySupplierId(Integer supplierId) {
-        return purchaseOrderRepository.findTop3BySupplierIdOrderByOrderDateDesc(supplierId);
+    public ResponseEntity<ResponseModel<?>> getLastThreeOrdersBySupplierId(Integer supplierId) {
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.findTop3BySupplierIdOrderByOrderDateDesc(supplierId)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving purchase order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+
     }
 }

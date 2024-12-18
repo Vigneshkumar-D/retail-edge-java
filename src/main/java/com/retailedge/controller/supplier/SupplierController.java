@@ -20,18 +20,18 @@ public class SupplierController {
     private SupplierService supplierService;
 
     @GetMapping
-    public List<Supplier> list(@RequestParam(required = false, name = "supplierId") Integer supplierId){
+    public ResponseEntity<ResponseModel<?>> list(@RequestParam(required = false, name = "supplierId") Integer supplierId){
         Specification<Supplier> spec = SupplierSpecification.hasSupplierId(supplierId);
         return supplierService.list(spec);
     }
 
     @PostMapping
-    private Supplier add(@RequestBody SupplierDto supplierDto){
+    private ResponseEntity<ResponseModel<?>> add(@RequestBody SupplierDto supplierDto){
         return supplierService.add(supplierDto);
     }
 
     @PutMapping("/{supplierId}")
-    public Supplier update(@PathVariable("supplierId") Integer supplierId, @RequestBody SupplierDto supplierDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("supplierId") Integer supplierId, @RequestBody SupplierDto supplierDto){
         return supplierService.update(supplierId, supplierDto);
     }
 

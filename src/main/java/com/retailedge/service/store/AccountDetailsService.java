@@ -49,7 +49,6 @@ public class AccountDetailsService {
     }
 
     public ResponseEntity<ResponseModel<?>> add(AccountDetailsDto accountDetailsDto) throws IOException {
-        System.out.println("image "+ Arrays.toString(accountDetailsDto.getUpiQRCodeImage().getBytes()));
         try{
             AccountDetails accountDetails = new AccountDetails();
             accountDetails.setBankName(accountDetailsDto.getBankName());
@@ -58,9 +57,7 @@ public class AccountDetailsService {
             accountDetails.setUpiId(accountDetailsDto.getUpiId());
             accountDetails.setIfscCode(accountDetailsDto.getIfscCode());
             if (accountDetailsDto.getUpiQRCodeImage() != null && !accountDetailsDto.getUpiQRCodeImage().isEmpty()) {
-//                accountDetails.setUpiQRCodeImage(accountDetailsDto.getUpiQRCodeImage().getBytes());
-                byte[] decodedBytes = Base64.getDecoder().decode(accountDetailsDto.getUpiQRCodeImage().getBytes());
-                accountDetails.setUpiQRCodeImage(decodedBytes);
+                accountDetails.setUpiQRCodeImage(accountDetailsDto.getUpiQRCodeImage().getBytes());
             }
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.save(accountDetails)));
         }catch (Exception e) {
@@ -83,11 +80,8 @@ public class AccountDetailsService {
             accountDetails.setUpiId(accountDetailsDto.getUpiId());
             accountDetails.setIfscCode(accountDetailsDto.getIfscCode());
 
-
             if (accountDetailsDto.getUpiQRCodeImage() != null && !accountDetailsDto.getUpiQRCodeImage().isEmpty()) {
-                byte[] decodedBytes = Base64.getDecoder().decode(accountDetailsDto.getUpiQRCodeImage().getBytes());
-
-                accountDetails.setUpiQRCodeImage(decodedBytes);
+                accountDetails.setUpiQRCodeImage(accountDetailsDto.getUpiQRCodeImage().getBytes());
             }
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.findAll()));
         }catch (Exception e) {
@@ -99,15 +93,12 @@ public class AccountDetailsService {
     public ResponseEntity<ResponseModel<?>> delete(Integer accountDetailsId) throws Exception {
         try {
             if (!accountDetailsRepository.existsById(accountDetailsId)) {
-                // Return 404 Not Found
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseModel<>(false, "Account details not found", 404));
+                        .body(new ResponseModel<>(false, "Account details not found!", 404));
             }
             accountDetailsRepository.deleteById(accountDetailsId);
-            // Return 200 OK if the category is deleted successfully
             return ResponseEntity.ok(new ResponseModel<>(true, "Deleted successfully", 200));
         } catch (Exception e) {
-            // Return 500 Internal Server Error for any unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error deleting Account details: " + e.getMessage(), 500));
         }

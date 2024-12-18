@@ -5,13 +5,11 @@ import com.retailedge.entity.user.*;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.user.*;
 import com.retailedge.service.authentication.EmailService;
-import com.retailedge.specification.invoice.InvoiceSpecificationBuilder;
 import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import jakarta.annotation.PostConstruct;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -36,7 +34,7 @@ public class UserService implements UserDetailsService{
     @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired(required = true)
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -46,7 +44,7 @@ public class UserService implements UserDetailsService{
     private EmailService emailService;
 
     @Autowired
-    private ModelMapper modelMapper; // Injecting ModelMapper
+    private ModelMapper modelMapper;
 
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;
@@ -60,7 +58,6 @@ public class UserService implements UserDetailsService{
         }
     }
 
-    // Create a new user
     public ResponseEntity<ResponseModel<?>> updateUser(Integer userId, UserDTO userDTO) {
 
         try{
@@ -72,6 +69,10 @@ public class UserService implements UserDetailsService{
             if(role.isEmpty()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseModel<>(false, "Role not found!", 500));
+            }
+
+            if (userDTO.getProfileImage() != null && !userDTO.getProfileImage().isEmpty()) {
+                user.setProfileImage(userDTO.getProfileImage().getBytes());
             }
 
             modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -90,7 +91,6 @@ public class UserService implements UserDetailsService{
     }
 
     public ResponseEntity<ResponseModel<?>> createUser(UserDTO userDTO) {
-
         try{
             Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
             if(role.isEmpty()){
@@ -98,18 +98,21 @@ public class UserService implements UserDetailsService{
                         .body(new ResponseModel<>(false, "Role not found!", 500));
             }
 
-            // Create a new user and map fields
             User user = modelMapper.map(userDTO, User.class);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setRole(role.get());
             user.setActive(true);
+
+            if (userDTO.getProfileImage() != null && !userDTO.getProfileImage().isEmpty()) {
+                user.setProfileImage(userDTO.getProfileImage().getBytes());
+            }
             User savedUser = userRepository.save(user);
             this.sentWelcomeMail(userDTO);
 
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, savedUser));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error retrieving user details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+                    .body(new ResponseModel<>(false, "Error adding user details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
 
@@ -153,10 +156,6 @@ public class UserService implements UserDetailsService{
     public String encodePassword(String password) {
         return this.passwordEncoder.encode(password);
     }
-
-//    public User getCurrentUser(String username){
-//        return userRepository.findByUsername(username).get();
-//    }
 
     @PostConstruct
     public void addUsers() {

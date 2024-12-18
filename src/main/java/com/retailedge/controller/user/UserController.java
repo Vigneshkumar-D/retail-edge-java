@@ -1,16 +1,11 @@
 package com.retailedge.controller.user;
 
 import com.retailedge.dto.user.UserDTO;
-import com.retailedge.entity.user.User;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.service.user.UserService;
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -19,8 +14,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping
-    public ResponseEntity<ResponseModel<?>> createUser(@RequestBody UserDTO userDTO) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<ResponseModel<?>> createUser(@ModelAttribute UserDTO userDTO) {
         return userService.createUser(userDTO);
     }
 
@@ -29,8 +24,8 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ResponseModel<?>> updateUser(@PathVariable(name = "id") Integer userId, @RequestBody UserDTO userDTO) {
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<ResponseModel<?>> updateUser(@PathVariable(name = "id") Integer userId, @ModelAttribute UserDTO userDTO) {
         return userService.updateUser(userId, userDTO);
 
     }

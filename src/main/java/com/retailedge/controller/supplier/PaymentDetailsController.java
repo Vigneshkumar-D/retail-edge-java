@@ -19,17 +19,17 @@ public class PaymentDetailsController {
     private PaymentDetailsService paymentDetailsService;
 
     @GetMapping
-    public List<PaymentDetails> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return paymentDetailsService.list();
     }
 
     @PostMapping
-    private PaymentDetails add(@RequestBody PaymentDetailsDto paymentDetailsDto){
+    private ResponseEntity<ResponseModel<?>> add(@RequestBody PaymentDetailsDto paymentDetailsDto){
         return paymentDetailsService.add(paymentDetailsDto);
     }
 
     @PutMapping("/{paymentDetailsId}")
-    public PaymentDetails update(@PathVariable("paymentDetailsId") Integer paymentDetailsId, @RequestBody PaymentDetailsDto paymentDetailsDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("paymentDetailsId") Integer paymentDetailsId, @RequestBody PaymentDetailsDto paymentDetailsDto){
         return paymentDetailsService.update(paymentDetailsId, paymentDetailsDto);
     }
 
@@ -39,7 +39,7 @@ public class PaymentDetailsController {
     }
 
     @GetMapping("/last-three/{supplierId}")
-    public List<PaymentDetails> getLastThreePaymentsBySupplier(@PathVariable("supplierId") Integer supplierId) {
+    public ResponseEntity<ResponseModel<?>> getLastThreePaymentsBySupplier(@PathVariable("supplierId") Integer supplierId) {
         return paymentDetailsService.getLastThreePaymentsBySupplierId(supplierId);
     }
 }

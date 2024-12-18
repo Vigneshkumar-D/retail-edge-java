@@ -17,17 +17,17 @@ public class PurchaseOrderController {
     private PurchaseOrderService purchaseOrderService;
 
     @GetMapping
-    public List<PurchaseOrder> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return purchaseOrderService.list();
     }
 
     @PostMapping
-    private PurchaseOrder add(@RequestBody PurchaseOrderDto purchaseOrderDto){
+    private ResponseEntity<ResponseModel<?>> add(@RequestBody PurchaseOrderDto purchaseOrderDto){
         return purchaseOrderService.add(purchaseOrderDto);
     }
 
     @PutMapping("/{purchaseOrderId}")
-    public PurchaseOrder update(@PathVariable("purchaseOrderId") Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("purchaseOrderId") Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto){
         return purchaseOrderService.update(purchaseOrderId, purchaseOrderDto);
     }
 
@@ -37,7 +37,7 @@ public class PurchaseOrderController {
     }
 
     @GetMapping("/last-three/{supplierId}")
-    public List<PurchaseOrder> getLastThreeOrdersBySupplier(@PathVariable("supplierId") Integer supplierId) {
+    public ResponseEntity<ResponseModel<?>> getLastThreeOrdersBySupplier(@PathVariable("supplierId") Integer supplierId) {
         return purchaseOrderService.getLastThreeOrdersBySupplierId(supplierId);
     }
 }

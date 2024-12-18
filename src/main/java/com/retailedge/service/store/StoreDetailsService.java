@@ -72,7 +72,7 @@ public class StoreDetailsService {
             if (storeDetailsDto.getStoreLogoImage() != null && !storeDetailsDto.getStoreLogoImage().isEmpty()) {
                 storeDetails.setStoreLogoImage(storeDetailsDto.getStoreLogoImage().getBytes());
             }
-                        return ResponseEntity.ok(new ResponseModel<>(true, "Updated Successfully", 200, storeDetailsRepository.findAll()));
+                        return ResponseEntity.ok(new ResponseModel<>(true, "Updated Successfully", 200, storeDetailsRepository.save(storeDetails)));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating store details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));

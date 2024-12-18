@@ -18,17 +18,17 @@ public class StockTransactionController {
     private StockTransactionService stockTransactionService;
 
     @GetMapping
-    public List<StockTransaction> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return stockTransactionService.list();
     }
 
     @PostMapping
-    public StockTransaction add(@RequestBody StockTransactionDto stockTransactionDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody StockTransactionDto stockTransactionDto){
         return stockTransactionService.add(stockTransactionDto);
     }
 
     @PutMapping("/{stockTransactionId}")
-    public StockTransaction update(@PathVariable(name = "stockTransactionId") Integer stockTransactionId, @RequestBody StockTransactionDto stockTransactionDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable(name = "stockTransactionId") Integer stockTransactionId, @RequestBody StockTransactionDto stockTransactionDto){
         return stockTransactionService.update(stockTransactionId, stockTransactionDto);
     }
 

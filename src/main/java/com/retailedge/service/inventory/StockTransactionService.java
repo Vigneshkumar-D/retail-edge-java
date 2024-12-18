@@ -6,6 +6,7 @@ import com.retailedge.entity.inventory.StockTransaction;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.inventory.ProductRepository;
 import com.retailedge.repository.inventory.StockTransactionRepository;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,35 +29,53 @@ public class StockTransactionService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<StockTransaction> list(){
-        return stockTransactionRepository.findAll();
-    }
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
 
-    public StockTransaction add(StockTransactionDto stockTransactionDto){
-        StockTransaction stockTransaction = new StockTransaction();
-        Product product = productRepository.findById(stockTransactionDto.getProduct().getId()).get();
-        modelMapper.map(stockTransactionDto, stockTransaction);
-        stockTransaction.setProduct(product);
-        product.setStockLevel(product.getStockLevel() - stockTransactionDto.getQuantity());
-        productRepository.save(product);
-        return stockTransactionRepository.save(stockTransaction);
-    }
-
-    public StockTransaction update(Integer stockTransactionId,  StockTransactionDto stockTransactionDto){
-        Optional<StockTransaction> stockTransactionOptional = stockTransactionRepository.findById(stockTransactionId);
-        if (stockTransactionOptional.isEmpty()) {
-            throw new RuntimeException("Product not found with id: " + stockTransactionId);
+    public ResponseEntity<ResponseModel<?>> list(){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, stockTransactionRepository.findAll()));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving stock transaction details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        StockTransaction stockTransaction = stockTransactionOptional.get();
+    }
 
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> {
-            return conditions.getSource() != null;
-        });
+    public ResponseEntity<ResponseModel<?>> add(StockTransactionDto stockTransactionDto){
 
-        modelMapper.map(stockTransactionDto, stockTransaction);
+        try{
+            StockTransaction stockTransaction = new StockTransaction();
+            Product product = productRepository.findById(stockTransactionDto.getProduct().getId()).get();
+            modelMapper.map(stockTransactionDto, stockTransaction);
+            stockTransaction.setProduct(product);
+            product.setStockLevel(product.getStockLevel() - stockTransactionDto.getQuantity());
+            productRepository.save(product);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, stockTransactionRepository.save(stockTransaction)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding stock transaction details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
+    }
 
-        return stockTransactionRepository.save(stockTransaction);
+    public ResponseEntity<ResponseModel<?>> update(Integer stockTransactionId,  StockTransactionDto stockTransactionDto){
+        try{
+            Optional<StockTransaction> stockTransactionOptional = stockTransactionRepository.findById(stockTransactionId);
+            if (stockTransactionOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Stock transaction details not found!", 500));
+            }
+            StockTransaction stockTransaction = stockTransactionOptional.get();
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> {
+                return conditions.getSource() != null;
+            });
+            modelMapper.map(stockTransactionDto, stockTransaction);
+
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, stockTransactionRepository.save(stockTransaction)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating stock transaction details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
     public ResponseEntity<ResponseModel<?>> delete(Integer stockTransactionId) throws Exception {

@@ -1,7 +1,9 @@
 package com.retailedge.dto.user;
 
+import com.retailedge.entity.user.Role;
 import com.retailedge.entity.user.User;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -14,8 +16,8 @@ public class UserDTO {
     private String username;
     private String email;
     private String mobileNumber;
-    private User role;
+    private Role role;
     private String password;
     private Boolean active;
-    private String imageUrl;
+    private MultipartFile profileImage;
 }
