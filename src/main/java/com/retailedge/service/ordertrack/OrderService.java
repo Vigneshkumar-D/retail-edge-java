@@ -12,6 +12,8 @@ import com.retailedge.repository.ordertrack.OrderRepository;
 import com.retailedge.repository.user.UserRepository;
 import com.retailedge.service.customer.CustomerService;
 import com.retailedge.specification.ordertrack.OrderSpecificationBuilder;
+import com.retailedge.specification.service.WarrantyServiceSpecificationBuilder;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import com.retailedge.utils.order.OrderNumberUtil;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -45,51 +47,74 @@ public class OrderService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
 
-    public  List<Order> list(OrderSpecificationBuilder builder){
-        return orderRepository.findAll(builder.build());
+    public ResponseEntity<ResponseModel<?>> list(OrderSpecificationBuilder builder){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.findAll(builder.build())));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public Order add(OrderDto orderDto) {
-        Order order = modelMapper.map(orderDto, Order.class);
-        Customer customer = modelMapper.map(orderDto.getCustomer(), Customer.class);
-        order.setCustomer(customerRepository.save(customer));
-        order.setOrderNumber(orderNumberUtil.generateOrderNumber());
-        order.setCreatedDate(Instant.now());
-        Optional<User> user = userRepository.findById(orderDto.getUser().getId());
-        order.setUser(user.get());
-        if (order.getOrderItems() != null) {
-            for (OrderItem item : order.getOrderItems()) {
-                item.setOrder(order);
+    public ResponseEntity<ResponseModel<?>> add(OrderDto orderDto) {
+        try{
+            Order order = modelMapper.map(orderDto, Order.class);
+            Customer customer = modelMapper.map(orderDto.getCustomer(), Customer.class);
+            order.setCustomer(customerRepository.save(customer));
+            order.setOrderNumber(orderNumberUtil.generateOrderNumber());
+            order.setCreatedDate(Instant.now());
+            Optional<User> user = userRepository.findById(orderDto.getUser().getId());
+            order.setUser(user.get());
+            if (order.getOrderItems() != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    item.setOrder(order);
+                }
             }
+
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.save(order)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        return orderRepository.save(order);
     }
 //
     @Transactional
-    public Order update(Integer orderId, OrderDto orderDto) {
-        // Fetch the existing order
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
-
-        // Map the non-collection properties from orderDto to order using ModelMapper
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.getConfiguration().setPropertyCondition(conditions -> conditions.getSource() != null);
-        modelMapper.map(orderDto, order);
-
-        // Set the user for the order
-        Optional<User> user = userRepository.findById(orderDto.getUser().getId());
-        order.setUser(user.orElseThrow(() -> new RuntimeException("User not found")));
-
-        if (order.getOrderItems() != null) {
-            for (OrderItem item : order.getOrderItems()) {
-                item.setOrder(order);
+    public ResponseEntity<ResponseModel<?>> update(Integer orderId, OrderDto orderDto) {
+        try{
+            // Fetch the existing order
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if(optionalOrder.isEmpty()){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Order details not found!", 500));
             }
+            Order order = optionalOrder.get();
+            // Map the non-collection properties from orderDto to order using ModelMapper
+            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+            modelMapper.getConfiguration().setPropertyCondition(conditions -> conditions.getSource() != null);
+            modelMapper.map(orderDto, order);
+
+            // Set the user for the order
+            Optional<User> user = userRepository.findById(orderDto.getUser().getId());
+            order.setUser(user.orElseThrow(() -> new RuntimeException("User not found")));
+
+            if (order.getOrderItems() != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    item.setOrder(order);
+                }
+            }
+
+            // Update the updated date
+            order.setUpdatedDate(Instant.now());
+
+
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.save(order)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-
-        // Update the updated date
-        order.setUpdatedDate(Instant.now());
-
-        return orderRepository.save(order);
     }
 
 //    public List<OrderItem> updateOrderItem(List<OrderItemDto> orderItemDtos){

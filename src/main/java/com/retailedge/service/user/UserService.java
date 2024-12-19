@@ -65,7 +65,7 @@ public class UserService implements UserDetailsService{
             if (user == null) {
                 return null;
             }
-            Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
+            Optional<Role> role = roleRepository.findById(userDTO.getRoleId());
             if(role.isEmpty()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseModel<>(false, "Role not found!", 500));
@@ -92,15 +92,19 @@ public class UserService implements UserDetailsService{
 
     public ResponseEntity<ResponseModel<?>> createUser(UserDTO userDTO) {
         try{
-            Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
+            Optional<Role> role = roleRepository.findById(userDTO.getRoleId());
             if(role.isEmpty()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseModel<>(false, "Role not found!", 500));
             }
-
-            User user = modelMapper.map(userDTO, User.class);
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+//            userDTO.setRole(role.get());
+            User user = new User();
+            user.setUsername(userDTO.getUsername());
             user.setRole(role.get());
+            user.setEmail(userDTO.getEmail());
+            user.setActive(userDTO.getActive());
+            user.setMobileNumber(userDTO.getMobileNumber());
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
             user.setActive(true);
 
             if (userDTO.getProfileImage() != null && !userDTO.getProfileImage().isEmpty()) {

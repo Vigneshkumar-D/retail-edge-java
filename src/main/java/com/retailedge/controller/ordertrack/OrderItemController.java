@@ -17,17 +17,17 @@ public class OrderItemController {
     private OrderItemService orderItemService;
 
     @GetMapping
-    public List<OrderItem> list(){
+    public ResponseEntity<ResponseModel<?>> list(){
         return orderItemService.list();
     }
 
     @PostMapping
-    public  List<OrderItem> add(@RequestBody List<OrderItemDto> orderItemDto, @PathVariable("order_id") Long orderId){
+    public  ResponseEntity<ResponseModel<?>> add(@RequestBody List<OrderItemDto> orderItemDto, @PathVariable("order_id") Long orderId){
         return orderItemService.add(orderItemDto, orderId);
     }
 
     @PutMapping("/{orderItemId}")
-    public OrderItem update(@PathVariable("orderItemId") Integer orderItemId, @RequestBody OrderItemDto orderItemDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("orderItemId") Integer orderItemId, @RequestBody OrderItemDto orderItemDto){
         return orderItemService.update(orderItemId, orderItemDto);
     }
 

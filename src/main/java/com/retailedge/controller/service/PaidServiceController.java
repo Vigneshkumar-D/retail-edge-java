@@ -23,7 +23,7 @@ public class PaidServiceController {
     private PaidServiceDetailsService paidService;
 
     @GetMapping
-    public List<PaidService> list(
+    public ResponseEntity<ResponseModel<?>> list(
             @RequestParam(required = false, name = "id")Integer id,
             @RequestParam(required = false, name = "customerName")String customerName,
             @RequestParam(required = false, name = "phoneNumber") String phoneNumber,
@@ -45,12 +45,12 @@ public class PaidServiceController {
     }
 
     @PostMapping
-    public PaidService add(@RequestBody PaidServiceDto paidServiceDto){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody PaidServiceDto paidServiceDto){
         return paidService.add(paidServiceDto);
     }
 
     @PutMapping("/{paidServiceId}")
-    public PaidService update(@PathVariable("paidServiceId") Integer paidServiceId, @RequestBody PaidServiceDto paidServiceDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("paidServiceId") Integer paidServiceId, @RequestBody PaidServiceDto paidServiceDto){
         return paidService.update(paidServiceId, paidServiceDto);
     }
 

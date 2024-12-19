@@ -37,11 +37,6 @@ public class Role {
     @Temporal(TemporalType.TIMESTAMP)
     private Instant updatedOn;
 
-    public Role(Integer id, String roleName){
-        this.id= id;
-        this.roleName=roleName;
-        this.active=true;
-    }
     @SneakyThrows
     @PreRemove
     private void preRemove(){

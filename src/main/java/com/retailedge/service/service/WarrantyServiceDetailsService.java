@@ -12,6 +12,7 @@ import com.retailedge.repository.service.WarrantyServiceRepository;
 import com.retailedge.repository.user.UserRepository;
 import com.retailedge.specification.service.PaidServiceSpecificationBuilder;
 import com.retailedge.specification.service.WarrantyServiceSpecificationBuilder;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,46 +37,84 @@ public class WarrantyServiceDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public  List<WarrantyService> list(WarrantyServiceSpecificationBuilder builder){
-        return warrantyServiceRepository.findAll(builder.build());
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list(WarrantyServiceSpecificationBuilder builder){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, warrantyServiceRepository.findAll(builder.build())));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving warranty service details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public WarrantyService add(WarrantyServiceDto warrantyServiceDto){
-        Customer customer = customerRepository.findByPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
-        if(customer==null){
-            if (warrantyServiceDto.getCustomer() != null) {
-                customer  = modelMapper.map(warrantyServiceDto.getCustomer(), Customer.class);
+    public ResponseEntity<ResponseModel<?>> add(WarrantyServiceDto warrantyServiceDto){
+        try{
+            Customer customer = customerRepository.findByPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
+            if(customer==null){
+                if (warrantyServiceDto.getCustomer() != null) {
+                    customer  = modelMapper.map(warrantyServiceDto.getCustomer(), Customer.class);
+                }
             }
+            assert customer != null;
+            Customer savedCustomer = customerRepository.save(customer);
+            customerRepository.save(savedCustomer);
+            WarrantyService warrantyService = modelMapper.map(warrantyServiceDto, WarrantyService.class);
+            warrantyService.setReceivedBy(userRepository.findById(warrantyServiceDto.getReceivedBy().getId()).get());
+            warrantyService.setCustomer(customer);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, warrantyServiceRepository.save(warrantyService)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error adding warranty service details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-        assert customer != null;
-        Customer savedCustomer = customerRepository.save(customer);
-        customerRepository.save(savedCustomer);
-        WarrantyService warrantyService = modelMapper.map(warrantyServiceDto, WarrantyService.class);
-        warrantyService.setReceivedBy(userRepository.findById(warrantyServiceDto.getReceivedBy().getId()).get());
-        warrantyService.setCustomer(customer);
-        return warrantyServiceRepository.save(warrantyService);
     }
 
+    public ResponseEntity<ResponseModel<?>> update(Integer warrantyServiceId, WarrantyServiceDto warrantyServiceDto) {
 
-    public WarrantyService update(Integer warrantyServiceId, WarrantyServiceDto warrantyServiceDto) {
-        // Retrieve the WarrantyService entity by ID
-        WarrantyService warrantyService = warrantyServiceRepository.findById(warrantyServiceId)
-                .orElseThrow(() -> new RuntimeException("Warranty Service Details not found with id: " + warrantyServiceId));
+        try{
+            // Retrieve the WarrantyService entity by ID
+            Optional<WarrantyService> optionalWarrantyService = warrantyServiceRepository.findById(warrantyServiceId);
+            if(optionalWarrantyService.isEmpty()){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Warranty Service Details not found!", 500));
+            }
 
-        // Update the `receivedBy` field if provided
-        if (warrantyServiceDto.getReceivedBy() != null && warrantyServiceDto.getReceivedBy().getId() != null) {
-            User receivedBy = userRepository.findById(warrantyServiceDto.getReceivedBy().getId())
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + warrantyServiceDto.getReceivedBy().getId()));
-            warrantyService.setReceivedBy(receivedBy);
-        }
+            WarrantyService warrantyService = optionalWarrantyService.get();
 
-        // Handle the customer relationship
-        Customer customer = null;
-        if (warrantyServiceDto.getCustomer() != null && warrantyServiceDto.getCustomer().getPhoneNumber() != null) {
-            customer = customerRepository.findByPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
-            if (customer == null) {
-                // If the customer doesn't exist, create a new one
-                customer = new Customer();
+            // Update the `receivedBy` field if provided
+            if (warrantyServiceDto.getReceivedBy() != null && warrantyServiceDto.getReceivedBy().getId() != null) {
+                Optional<User> receivedBy = userRepository.findById(warrantyServiceDto.getReceivedBy().getId());
+
+                if(receivedBy.isEmpty()){
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new ResponseModel<>(false, "User details not found!", 500));
+                }
+                warrantyService.setReceivedBy(receivedBy.get());
+
+            }
+
+            // Handle the customer relationship
+            Customer customer = null;
+            if (warrantyServiceDto.getCustomer() != null && warrantyServiceDto.getCustomer().getPhoneNumber() != null) {
+                customer = customerRepository.findByPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
+                if (customer == null) {
+                    // If the customer doesn't exist, create a new one
+                    customer = new Customer();
+                    customer.setName(warrantyServiceDto.getCustomer().getName());
+                    customer.setEmail(warrantyServiceDto.getCustomer().getEmail());
+                    customer.setPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
+                    customer.setAddress(warrantyServiceDto.getCustomer().getAddress());
+                    customer.setGSTIN(warrantyServiceDto.getCustomer().getGSTIN());
+                    customer.setDateOfBirth(warrantyServiceDto.getCustomer().getDateOfBirth());
+                    customer.setPinCode(warrantyServiceDto.getCustomer().getPinCode());
+                    customer.setState(warrantyServiceDto.getCustomer().getState());
+                    customerRepository.save(customer);
+                }
+            }
+
+            // Update the `customer` relationship if found or created
+            if (customer != null) {
                 customer.setName(warrantyServiceDto.getCustomer().getName());
                 customer.setEmail(warrantyServiceDto.getCustomer().getEmail());
                 customer.setPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
@@ -86,53 +125,39 @@ public class WarrantyServiceDetailsService {
                 customer.setState(warrantyServiceDto.getCustomer().getState());
                 customerRepository.save(customer);
             }
-        }
+            warrantyService.setCustomer(customer);
 
-        // Update the `customer` relationship if found or created
-        if (customer != null) {
-            customer.setName(warrantyServiceDto.getCustomer().getName());
-            customer.setEmail(warrantyServiceDto.getCustomer().getEmail());
-            customer.setPhoneNumber(warrantyServiceDto.getCustomer().getPhoneNumber());
-            customer.setAddress(warrantyServiceDto.getCustomer().getAddress());
-            customer.setGSTIN(warrantyServiceDto.getCustomer().getGSTIN());
-            customer.setDateOfBirth(warrantyServiceDto.getCustomer().getDateOfBirth());
-            customer.setPinCode(warrantyServiceDto.getCustomer().getPinCode());
-            customer.setState(warrantyServiceDto.getCustomer().getState());
-            customerRepository.save(customer);
-        }
-        warrantyService.setCustomer(customer);
+            // Manually update fields in the WarrantyService entity
+            if (warrantyServiceDto.getProductName() != null) {
+                warrantyService.setProductName(warrantyServiceDto.getProductName());
+            }
 
-        // Manually update fields in the WarrantyService entity
-        if (warrantyServiceDto.getProductName() != null) {
-            warrantyService.setProductName(warrantyServiceDto.getProductName());
-        }
+            if (warrantyServiceDto.getImeiNumber() != null) {
+                warrantyService.setImeiNumber(warrantyServiceDto.getImeiNumber());
+            }
 
-        if (warrantyServiceDto.getImeiNumber() != null) {
-            warrantyService.setImeiNumber(warrantyServiceDto.getImeiNumber());
-        }
+            if (warrantyServiceDto.getServiceProvider() != null) {
+                warrantyService.setServiceProvider(warrantyServiceDto.getServiceProvider());
+            }
 
-        if (warrantyServiceDto.getServiceProvider() != null) {
-            warrantyService.setServiceProvider(warrantyServiceDto.getServiceProvider());
-        }
+            if (warrantyServiceDto.getComplaintDescription() != null) {
+                warrantyService.setComplaintDescription(warrantyServiceDto.getComplaintDescription());
+            }
 
-        if (warrantyServiceDto.getComplaintDescription() != null) {
-            warrantyService.setComplaintDescription(warrantyServiceDto.getComplaintDescription());
-        }
+            if (warrantyServiceDto.getSparePartDescription() != null) {
+                warrantyService.setSparePartDescription(warrantyServiceDto.getSparePartDescription());
+            }
 
-        if (warrantyServiceDto.getSparePartDescription() != null) {
-            warrantyService.setSparePartDescription(warrantyServiceDto.getSparePartDescription());
-        }
+            if (warrantyServiceDto.getServiceDate() != null) {
+                warrantyService.setServiceDate(warrantyServiceDto.getServiceDate());
+            }
 
-        if (warrantyServiceDto.getServiceDate() != null) {
-            warrantyService.setServiceDate(warrantyServiceDto.getServiceDate());
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, warrantyServiceRepository.save(warrantyService)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating warranty service details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-
-        // Save and return the updated WarrantyService entity
-        return warrantyServiceRepository.save(warrantyService);
     }
-
-
-
 
     public ResponseEntity<ResponseModel<?>> delete(Integer warrantyServiceId) throws Exception {
 

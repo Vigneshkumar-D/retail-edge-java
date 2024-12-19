@@ -23,7 +23,7 @@ public class WarrantyServiceController {
 
 
     @GetMapping
-    public List<WarrantyService> list(
+    public ResponseEntity<ResponseModel<?>> list(
             @RequestParam(required = false, name = "id")Integer id,
             @RequestParam(required = false, name = "customerName")String customerName,
             @RequestParam(required = false, name = "phoneNumber") String phoneNumber,
@@ -47,12 +47,12 @@ public class WarrantyServiceController {
     }
 
     @PostMapping
-    public WarrantyService add(@RequestBody WarrantyServiceDto warrantyServiceId){
+    public ResponseEntity<ResponseModel<?>> add(@RequestBody WarrantyServiceDto warrantyServiceId){
         return warrantyService.add(warrantyServiceId);
     }
 
     @PutMapping("/{warrantyServiceId}")
-    public WarrantyService update(@PathVariable("warrantyServiceId") Integer warrantyServiceId, @RequestBody WarrantyServiceDto warrantyServiceDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("warrantyServiceId") Integer warrantyServiceId, @RequestBody WarrantyServiceDto warrantyServiceDto){
         return warrantyService.update(warrantyServiceId, warrantyServiceDto);
     }
 

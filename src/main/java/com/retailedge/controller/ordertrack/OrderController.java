@@ -22,7 +22,7 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping
-    public List<Order> list(
+    public ResponseEntity<ResponseModel<?>> list(
             @RequestParam(required = false, name = "id")Integer id,
             @RequestParam(required = false, name = "customerName")String customerName,
             @RequestParam(required = false, name = "phoneNumber") String phoneNumber,
@@ -43,12 +43,12 @@ public class OrderController {
 
 
     @PostMapping
-    public  Order add(@RequestBody OrderDto orderDto){
+    public  ResponseEntity<ResponseModel<?>> add(@RequestBody OrderDto orderDto){
         return orderService.add(orderDto);
     }
 
     @PutMapping("/{orderId}")
-    public Order update(@PathVariable("orderId") Integer orderId, @RequestBody OrderDto orderDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("orderId") Integer orderId, @RequestBody OrderDto orderDto){
         return orderService.update(orderId, orderDto);
     }
 

@@ -26,16 +26,6 @@ public class AccountDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-
-//    public AccountDetails add(AccountDetailsDto accountDetailsDto) throws IOException {
-//        AccountDetails accountDetails = new AccountDetails();
-//        modelMapper.map(accountDetailsDto, accountDetails);
-//        if (accountDetailsDto.getUpiQRCode() != null && !accountDetailsDto.getUpiQRCode().isEmpty()) {
-//            accountDetails.setUpiQRCode(accountDetailsDto.getUpiQRCode().getBytes());
-//        }
-//        return accountDetailsRepository.save(accountDetails);
-//    }
-
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;
 
@@ -83,7 +73,7 @@ public class AccountDetailsService {
             if (accountDetailsDto.getUpiQRCodeImage() != null && !accountDetailsDto.getUpiQRCodeImage().isEmpty()) {
                 accountDetails.setUpiQRCodeImage(accountDetailsDto.getUpiQRCodeImage().getBytes());
             }
-            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.findAll()));
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, accountDetailsRepository.save(accountDetails)));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating account details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));

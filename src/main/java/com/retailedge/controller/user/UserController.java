@@ -1,11 +1,15 @@
 package com.retailedge.controller.user;
 
 import com.retailedge.dto.user.UserDTO;
+import com.retailedge.entity.user.Role;
 import com.retailedge.model.ResponseModel;
+import com.retailedge.repository.user.RoleRepository;
 import com.retailedge.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -14,9 +18,16 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<ResponseModel<?>> createUser(@ModelAttribute UserDTO userDTO) {
+//        Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
+//        userDTO.setRole(role.get());
+
         return userService.createUser(userDTO);
+//        return userService.createUser(userDTO);
     }
 
     @GetMapping("/{id}")

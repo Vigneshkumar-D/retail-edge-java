@@ -10,6 +10,7 @@ import com.retailedge.repository.service.PaidServiceRepository;
 import com.retailedge.repository.user.UserRepository;
 //import com.retailedge.specification.supplier.service.PaidServiceSpecificationBuilder;
 import com.retailedge.specification.service.PaidServiceSpecificationBuilder;
+import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -37,24 +38,37 @@ public class PaidServiceDetailsService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public  List<PaidService> list(PaidServiceSpecificationBuilder builder){
-        return paidServiceRepository.findAll(builder.build());
+    @Autowired
+    private ExceptionHandlerUtil exceptionHandlerUtil;
+
+    public ResponseEntity<ResponseModel<?>> list(PaidServiceSpecificationBuilder builder){
+        try{
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, paidServiceRepository.findAll(builder.build())));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error retrieving paid service details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+        }
     }
 
-    public PaidService add(PaidServiceDto paidServiceDto){
-        Customer customer = customerRepository.findByPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
-        if(customer==null){
-            if (paidServiceDto.getCustomer() != null) {
-                customer = modelMapper.map(paidServiceDto.getCustomer(), Customer.class);
+    public ResponseEntity<ResponseModel<?>> add(PaidServiceDto paidServiceDto){
+            try{
+                Customer customer = customerRepository.findByPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
+                if(customer==null){
+                    if (paidServiceDto.getCustomer() != null) {
+                        customer = modelMapper.map(paidServiceDto.getCustomer(), Customer.class);
+                    }
+                }
+                assert customer != null;
+                Customer savedCustomer =  customerRepository.save(customer);
+                PaidService paidService = modelMapper.map(paidServiceDto, PaidService.class);
+                paidService.setReceivedBy(userRepository.findById(paidServiceDto.getReceivedBy().getId()).get());
+                paidService.setCustomer(savedCustomer);
+                return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, paidServiceRepository.save(paidService)));
+            }catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Error adding paid service details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
             }
         }
-        assert customer != null;
-        Customer savedCustomer =  customerRepository.save(customer);
-        PaidService paidService = modelMapper.map(paidServiceDto, PaidService.class);
-        paidService.setReceivedBy(userRepository.findById(paidServiceDto.getReceivedBy().getId()).get());
-        paidService.setCustomer(savedCustomer);
-        return paidServiceRepository.save(paidService);
-    }
 
 //    public PaidService update(Integer paidServiceId, PaidServiceDto paidServiceDto){
 //        Optional<PaidService> paidServiceOptional = paidServiceRepository.findById(paidServiceId);
@@ -107,26 +121,48 @@ public class PaidServiceDetailsService {
 //
 
 
-    public PaidService update(Integer paidServiceId, PaidServiceDto paidServiceDto) {
-        // Retrieve the PaidService entity by ID
-        PaidService paidService = paidServiceRepository.findById(paidServiceId)
-                .orElseThrow(() -> new RuntimeException("Paid Service Details not found with id: " + paidServiceId));
+    public ResponseEntity<ResponseModel<?>> update(Integer paidServiceId, PaidServiceDto paidServiceDto) {
+        try{
+            // Retrieve the PaidService entity by ID
+            Optional<PaidService> optionalPaidService = paidServiceRepository.findById(paidServiceId);
 
-        // Update the `receivedBy` field
-        if (paidServiceDto.getReceivedBy() != null && paidServiceDto.getReceivedBy().getId() != null) {
-            User receivedBy = userRepository.findById(paidServiceDto.getReceivedBy().getId())
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + paidServiceDto.getReceivedBy().getId()));
-            paidService.setReceivedBy(receivedBy);
-        }
+            if(optionalPaidService.isEmpty()){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ResponseModel<>(false, "Paid Service Details not found!", 500));
+            }
+            PaidService paidService = optionalPaidService.get();
+            // Update the `receivedBy` field
+            if (paidServiceDto.getReceivedBy() != null && paidServiceDto.getReceivedBy().getId() != null) {
+                Optional<User> receivedBy = userRepository.findById(paidServiceDto.getReceivedBy().getId());
+                if(receivedBy.isEmpty()){
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new ResponseModel<>(false, "Paid Service Details not!", 500));
+                }
+                paidService.setReceivedBy(receivedBy.get());
+            }
 
-        // Handle the customer relationship
-        Customer customer = null;
-        if (paidServiceDto.getCustomer() != null && paidServiceDto.getCustomer().getPhoneNumber() != null) {
-            customer = customerRepository.findByPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
+            // Handle the customer relationship
+            Customer customer = null;
+            if (paidServiceDto.getCustomer() != null && paidServiceDto.getCustomer().getPhoneNumber() != null) {
+                customer = customerRepository.findByPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
 
-            if (customer == null) {
-                // If the customer doesn't exist, create a new one
-                customer = new Customer();
+                if (customer == null) {
+                    // If the customer doesn't exist, create a new one
+                    customer = new Customer();
+                    customer.setName(paidServiceDto.getCustomer().getName());
+                    customer.setEmail(paidServiceDto.getCustomer().getEmail());
+                    customer.setPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
+                    customer.setAddress(paidServiceDto.getCustomer().getAddress());
+                    customer.setDateOfBirth(paidServiceDto.getCustomer().getDateOfBirth());
+                    customer.setGSTIN(paidServiceDto.getCustomer().getGSTIN());
+                    customer.setPinCode(paidServiceDto.getCustomer().getPinCode());
+                    customer.setState(paidServiceDto.getCustomer().getState());
+                    customerRepository.save(customer);
+                }
+            }
+
+            // Update the `customer` relationship
+            if (customer != null) {
                 customer.setName(paidServiceDto.getCustomer().getName());
                 customer.setEmail(paidServiceDto.getCustomer().getEmail());
                 customer.setPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
@@ -137,62 +173,50 @@ public class PaidServiceDetailsService {
                 customer.setState(paidServiceDto.getCustomer().getState());
                 customerRepository.save(customer);
             }
-        }
 
-        // Update the `customer` relationship
-        if (customer != null) {
-            customer.setName(paidServiceDto.getCustomer().getName());
-            customer.setEmail(paidServiceDto.getCustomer().getEmail());
-            customer.setPhoneNumber(paidServiceDto.getCustomer().getPhoneNumber());
-            customer.setAddress(paidServiceDto.getCustomer().getAddress());
-            customer.setDateOfBirth(paidServiceDto.getCustomer().getDateOfBirth());
-            customer.setGSTIN(paidServiceDto.getCustomer().getGSTIN());
-            customer.setPinCode(paidServiceDto.getCustomer().getPinCode());
-            customer.setState(paidServiceDto.getCustomer().getState());
-            customerRepository.save(customer);
-        }
+            paidService.setCustomer(customer);
 
-        paidService.setCustomer(customer);
+            // Manually update fields in the PaidService entity
+            if (paidServiceDto.getProductName() != null) {
+                paidService.setProductName(paidServiceDto.getProductName());
+            }
 
-        // Manually update fields in the PaidService entity
-        if (paidServiceDto.getProductName() != null) {
-            paidService.setProductName(paidServiceDto.getProductName());
-        }
+            if (paidServiceDto.getImeiNumber() != null) {
+                paidService.setImeiNumber(paidServiceDto.getImeiNumber());
+            }
 
-        if (paidServiceDto.getImeiNumber() != null) {
-            paidService.setImeiNumber(paidServiceDto.getImeiNumber());
-        }
+            if (paidServiceDto.getComplaintDescription() != null) {
+                paidService.setComplaintDescription(paidServiceDto.getComplaintDescription());
+            }
 
-        if (paidServiceDto.getComplaintDescription() != null) {
-            paidService.setComplaintDescription(paidServiceDto.getComplaintDescription());
-        }
+            if (paidServiceDto.getSparePartDescription() != null) {
+                paidService.setSparePartDescription(paidServiceDto.getSparePartDescription());
+            }
 
-        if (paidServiceDto.getSparePartDescription() != null) {
-            paidService.setSparePartDescription(paidServiceDto.getSparePartDescription());
-        }
+            if (paidServiceDto.getAdvancePayment() != null) {
+                paidService.setAdvancePayment(paidServiceDto.getAdvancePayment());
+            }
 
-        if (paidServiceDto.getAdvancePayment() != null) {
-            paidService.setAdvancePayment(paidServiceDto.getAdvancePayment());
-        }
+            if (paidServiceDto.getSparePartCost() != null) {
+                paidService.setSparePartCost(paidServiceDto.getSparePartCost());
+            }
 
-        if (paidServiceDto.getSparePartCost() != null) {
-            paidService.setSparePartCost(paidServiceDto.getSparePartCost());
-        }
+            if (paidServiceDto.getCustomerCost() != null) {
+                paidService.setCustomerCost(paidServiceDto.getCustomerCost());
+            }
 
-        if (paidServiceDto.getCustomerCost() != null) {
-            paidService.setCustomerCost(paidServiceDto.getCustomerCost());
-        }
-
-        if (paidServiceDto.getProfitMargin() != null) {
+            if (paidServiceDto.getProfitMargin() != null) {
                 paidService.setProfitMargin(paidServiceDto.getProfitMargin());
-        }
+            }
 
-        if (paidServiceDto.getServiceDate() != null) {
-            paidService.setServiceDate(paidServiceDto.getServiceDate());
+            if (paidServiceDto.getServiceDate() != null) {
+                paidService.setServiceDate(paidServiceDto.getServiceDate());
+            }
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, paidServiceRepository.save(paidService)));
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseModel<>(false, "Error updating paid service details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
-
-        // Save and return the updated PaidService entity
-        return paidServiceRepository.save(paidService);
     }
 
 
