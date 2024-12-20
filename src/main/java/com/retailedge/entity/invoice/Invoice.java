@@ -118,7 +118,7 @@ public class Invoice {
     @Column(name = "invoice_date", nullable = false)
     private Instant invoiceDate;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "invoice_id")
     private List<InvoiceLineItem> lineItems;
 
@@ -166,8 +166,13 @@ public class Invoice {
     @JoinColumn(name = "user_id", nullable = false)
     private User soldBy;
 
+    private String description;
+
     // Cash
     private Double cashPayment;
+
+    private Double pricePerUnit;
+
 
     // UPI
     private String upiId;

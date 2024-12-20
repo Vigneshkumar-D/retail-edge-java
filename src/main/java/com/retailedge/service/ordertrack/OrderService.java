@@ -62,8 +62,13 @@ public class OrderService {
     public ResponseEntity<ResponseModel<?>> add(OrderDto orderDto) {
         try{
             Order order = modelMapper.map(orderDto, Order.class);
-            Customer customer = modelMapper.map(orderDto.getCustomer(), Customer.class);
-            order.setCustomer(customerRepository.save(customer));
+            Customer customer = customerRepository.findByPhoneNumber(orderDto.getCustomer().getPhoneNumber());
+            if (customer == null) {
+                customer = modelMapper.map(orderDto.getCustomer(), Customer.class);
+                customer  = customerRepository.save(customer);
+            }
+
+            order.setCustomer(customer);
             order.setOrderNumber(orderNumberUtil.generateOrderNumber());
             order.setCreatedDate(Instant.now());
             Optional<User> user = userRepository.findById(orderDto.getUser().getId());
@@ -100,16 +105,15 @@ public class OrderService {
             Optional<User> user = userRepository.findById(orderDto.getUser().getId());
             order.setUser(user.orElseThrow(() -> new RuntimeException("User not found")));
 
-            if (order.getOrderItems() != null) {
-                for (OrderItem item : order.getOrderItems()) {
-                    item.setOrder(order);
-                }
-            }
+//            if (order.getOrderItems() != null) {
+//                for (OrderItem item : order.getOrderItems()) {
+//                    item.setOrder(order);
+//                }
+//            }
 
             // Update the updated date
             order.setUpdatedDate(Instant.now());
-
-
+            
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.save(order)));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

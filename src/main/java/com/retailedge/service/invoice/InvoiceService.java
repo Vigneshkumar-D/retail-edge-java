@@ -80,6 +80,7 @@ public class InvoiceService {
 
     public ResponseEntity<ResponseModel<?>> list(InvoiceSpecificationBuilder builder) {
         try{
+            System.out.println("Hit Invoice");
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, invoiceRepository.findAll(builder.build())));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -92,7 +93,7 @@ public class InvoiceService {
         // Fetch or create the customer based on phone number
 
         try{
-            Customer customer = customerRepository.phoneNumber(invoiceDto.getCustomer().getPhoneNumber());
+            Customer customer = customerRepository.findByPhoneNumber(invoiceDto.getCustomer().getPhoneNumber());
             if (customer == null) {
                 Customer customer1 = modelMapper.map(invoiceDto.getCustomer(), Customer.class);
                 customer = customerRepository.save(customer1);
@@ -126,7 +127,7 @@ public class InvoiceService {
             invoice.setCustomer(customer); // Set the customer in the invoice
             invoice.setCreditReminder(creditReminder); // Associate CreditReminder
             invoice.setEmiDetails(emiDetails); // Associate EMIDetails
-            invoice.setSoldBy(userRepository.findById(invoiceDto.getSoldBy()).get());
+            invoice.setSoldBy(userRepository.findById(invoiceDto.getSoldBy().getId()).get());
 
             // Map and add invoice line items
             List<InvoiceLineItem> invoiceLineItems = new ArrayList<>();
@@ -151,31 +152,65 @@ public class InvoiceService {
     }
 
 
+//    @Transactional
+//    public ResponseEntity<ResponseModel<?>> update(Integer invoiceId, InvoiceDto invoiceDto) {
+//        try{
+//            System.out.println("invoice 0 "+ invoiceId);
+//            Optional<Invoice> invoiceOptional = invoiceRepository.findById(invoiceId);
+//            if (invoiceOptional.isEmpty()) {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                        .body(new ResponseModel<>(false, "Invoice Details not found!", 500));
+//            }
+//            System.out.println("invoice 1 "+ invoiceId);
+//            Invoice invoice = invoiceOptional.get();
+//            Customer customer = customerRepository.phoneNumber(invoiceDto.getCustomer().getPhoneNumber());
+//            Customer savedCustomer = this.updateCustomer(customer.getId(), invoiceDto.getCustomer());
+//            List<InvoiceLineItem> invoiceLineItems = new ArrayList<>();
+//            for(InvoiceLineItemDto invoiceLineItemDto : invoiceDto.getLineItems()){
+//                InvoiceLineItem savedInvoiceLineItem = invoiceLineItemService.add(invoiceLineItemDto);
+//                invoiceLineItems.add(savedInvoiceLineItem);
+//            }
+//            System.out.println("invoice 2 "+ invoiceId);
+//            modelMapper.map(invoiceDto, invoice);
+//            invoice.setCustomer(savedCustomer);
+//            invoice.setLineItems(invoiceLineItems);
+//            invoice.setSoldBy(userRepository.findById(invoiceDto.getSoldBy().getId()).get());
+//            System.out.println("invoice "+ invoice);
+//            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, invoiceRepository.save(invoice)));
+//        }catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ResponseModel<>(false, "Error updating invoice details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+//        }
+//    }
+
+    @Transactional
     public ResponseEntity<ResponseModel<?>> update(Integer invoiceId, InvoiceDto invoiceDto) {
-
-
-        try{
+        try {
             Optional<Invoice> invoiceOptional = invoiceRepository.findById(invoiceId);
             if (invoiceOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseModel<>(false, "Invoice Details not found!", 500));
             }
+
             Invoice invoice = invoiceOptional.get();
-            Customer savedCustomer = this.updateCustomer(invoiceDto.getCustomer().getId(), invoiceDto.getCustomer());
-            List<InvoiceLineItem> invoiceLineItems = new ArrayList<>();
-            for(InvoiceLineItemDto invoiceLineItemDto : invoiceDto.getLineItems()){
-                InvoiceLineItem savedInvoiceLineItem = invoiceLineItemService.add(invoiceLineItemDto);
-                invoiceLineItems.add(savedInvoiceLineItem);
-            }
+            // Step 1: Handle Customer Update
+            Customer customer = customerRepository.findByPhoneNumber(invoiceDto.getCustomer().getPhoneNumber());
+            Customer savedCustomer = this.updateCustomer(customer.getId(), invoiceDto.getCustomer());
+
+            // Step 3: Update Other Invoice Fields
             modelMapper.map(invoiceDto, invoice);
             invoice.setCustomer(savedCustomer);
-            invoice.setLineItems(invoiceLineItems);
-            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, invoiceRepository.save(invoice)));
-        }catch (Exception e) {
+            invoice.setSoldBy(userRepository.findById(invoiceDto.getSoldBy().getId()).orElse(null));
+
+            // Step 4: Save and Return Updated Invoice
+            Invoice updatedInvoice = invoiceRepository.save(invoice);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, updatedInvoice));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating invoice details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
+
 
     public ResponseEntity<ResponseModel<?>> findByInvoiceNumber(String invoiceNumber) {
         try{

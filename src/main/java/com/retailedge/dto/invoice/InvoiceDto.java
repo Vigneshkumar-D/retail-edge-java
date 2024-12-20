@@ -3,6 +3,7 @@ package com.retailedge.dto.invoice;
 import com.retailedge.dto.credit.CreditReminderDto;
 import com.retailedge.dto.customer.CustomerDto;
 import com.retailedge.dto.emi.EMIDetailsDto;
+import com.retailedge.entity.user.User;
 import com.retailedge.enums.invoice.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +32,11 @@ public class InvoiceDto {
     private EMIDetailsDto emiDetails;
     private CustomerDto customer;
 
-    private Integer soldBy;
+    private User soldBy;
+
+    private Double pricePerUnit;
+
+    private String description;
 
     //Cash
     private Double cashPayment;
