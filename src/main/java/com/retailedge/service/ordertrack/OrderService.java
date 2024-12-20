@@ -8,6 +8,7 @@ import com.retailedge.entity.ordertrack.OrderItem;
 import com.retailedge.entity.user.User;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.customer.CustomerRepository;
+import com.retailedge.repository.ordertrack.OrderItemRepository;
 import com.retailedge.repository.ordertrack.OrderRepository;
 import com.retailedge.repository.user.UserRepository;
 import com.retailedge.service.customer.CustomerService;
@@ -50,6 +51,9 @@ public class OrderService {
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;
 
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
     public ResponseEntity<ResponseModel<?>> list(OrderSpecificationBuilder builder){
         try{
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.findAll(builder.build())));
@@ -86,40 +90,91 @@ public class OrderService {
         }
     }
 //
+//    @Transactional
+//    public ResponseEntity<ResponseModel<?>> update(Integer orderId, OrderDto orderDto) {
+//        try{
+//            // Fetch the existing order
+//            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+//            if(optionalOrder.isEmpty()){
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                        .body(new ResponseModel<>(false, "Order details not found!", 500));
+//            }
+//            Order order = optionalOrder.get();
+//            // Map the non-collection properties from orderDto to order using ModelMapper
+//            modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+//            modelMapper.getConfiguration().setPropertyCondition(conditions -> conditions.getSource() != null);
+//            modelMapper.map(orderDto, order);
+//
+//            // Set the user for the order
+//            Optional<User> user = userRepository.findById(orderDto.getUser().getId());
+//            order.setUser(user.orElseThrow(() -> new RuntimeException("User not found")));
+//
+////            if (order.getOrderItems() != null) {
+////                for (OrderItem item : order.getOrderItems()) {
+////                    item.setOrder(order);
+////                }
+////            }
+//
+//            // Update the updated date
+//            order.setUpdatedDate(Instant.now());
+//
+//            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.save(order)));
+//        }catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ResponseModel<>(false, "Error updating order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+//        }
+//    }
+
     @Transactional
     public ResponseEntity<ResponseModel<?>> update(Integer orderId, OrderDto orderDto) {
-        try{
+        try {
             // Fetch the existing order
             Optional<Order> optionalOrder = orderRepository.findById(orderId);
-            if(optionalOrder.isEmpty()){
+            if (optionalOrder.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new ResponseModel<>(false, "Order details not found!", 500));
             }
             Order order = optionalOrder.get();
-            // Map the non-collection properties from orderDto to order using ModelMapper
+
+            // Configure ModelMapper
             modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
             modelMapper.getConfiguration().setPropertyCondition(conditions -> conditions.getSource() != null);
+            modelMapper.typeMap(OrderDto.class, Order.class)
+                    .addMappings(mapper -> mapper.skip(Order::setId));
             modelMapper.map(orderDto, order);
 
             // Set the user for the order
             Optional<User> user = userRepository.findById(orderDto.getUser().getId());
             order.setUser(user.orElseThrow(() -> new RuntimeException("User not found")));
 
-//            if (order.getOrderItems() != null) {
-//                for (OrderItem item : order.getOrderItems()) {
-//                    item.setOrder(order);
-//                }
-//            }
+            // Update order items
+            if (orderDto.getOrderItems() != null) {
+                List<OrderItem> updatedItems = orderDto.getOrderItems().stream()
+                        .map(dto -> {
+                            OrderItem item = dto.getId() != null
+                                    ? orderItemRepository.findById(dto.getId()).orElse(new OrderItem())
+                                    : new OrderItem();
+                            modelMapper.map(dto, item);
+                            item.setOrder(order); // Maintain bidirectional relationship
+                            return item;
+                        })
+                        .collect(Collectors.toList());
+                order.getOrderItems().clear();
+                order.getOrderItems().addAll(updatedItems);
+            }
 
             // Update the updated date
             order.setUpdatedDate(Instant.now());
-            
+
+            // Save and return
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, orderRepository.save(order)));
-        }catch (Exception e) {
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the stack trace
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
+
 
 //    public List<OrderItem> updateOrderItem(List<OrderItemDto> orderItemDtos){
 //
