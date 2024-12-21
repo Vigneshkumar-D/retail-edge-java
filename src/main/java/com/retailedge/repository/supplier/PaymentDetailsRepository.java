@@ -15,6 +15,6 @@ public interface PaymentDetailsRepository extends JpaRepository<PaymentDetails,I
     List<PaymentDetails> findTop3BySupplierIdOrderByPaymentDateDesc(@Param("supplierId") Integer supplierId);
 
     @Query("SELECT p FROM PaymentDetails p WHERE p.supplier.id = :supplierId AND p.paymentStatus = 'COMPLETED' ORDER BY p.paymentDate DESC")
-    List<PaymentDetails> findTopBySupplierIdAndPaymentStatusOrderByPaymentDateDesc(@Param("supplierId") Long supplierId);
+    List<PaymentDetails> findTopBySupplierIdAndPaymentStatusOrderByPaymentDateDesc(@Param("supplierId") Integer supplierId);
 
 }

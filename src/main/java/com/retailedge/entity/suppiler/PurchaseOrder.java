@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
 @Getter
 @Setter
 public class PurchaseOrder {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -29,7 +31,8 @@ public class PurchaseOrder {
     @JsonManagedReference
     private List<PurchaseProduct> purchaseProducts;
     private Double orderTotal;
-    private LocalDate deliveryDate;
+    private Instant orderDate;
+    private Instant deliveryDate;
     private String status;
 }
 

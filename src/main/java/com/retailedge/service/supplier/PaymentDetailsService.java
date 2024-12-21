@@ -175,7 +175,7 @@ public class PaymentDetailsService {
         }
     }
 
-    public Double findLastPayment(Long supplierId) {
+    public Double findLastPayment(Integer supplierId) {
         PaymentDetails lastPaymentDetail = paymentDetailsRepository
                 .findTopBySupplierIdAndPaymentStatusOrderByPaymentDateDesc(supplierId)
                 .stream()
