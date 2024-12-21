@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 public class PurchaseOrderDto {
     private Supplier supplier;
-    private List<PurchaseProductDto> purchaseProductDto;
+    private List<PurchaseProductDto> purchaseProducts;
     private Double orderTotal;
     private String remark;
     private Instant orderDate;

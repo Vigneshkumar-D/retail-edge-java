@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -165,12 +166,12 @@ public class PurchaseOrderService {
 
             // Convert PurchaseProductDto list to PurchaseProduct entities and set the purchaseOrder relationship
             List<PurchaseProduct> purchaseProductList = new ArrayList<>();
-            for (PurchaseProductDto productDto : purchaseOrderDto.getPurchaseProductDto()) {
+            for (PurchaseProductDto productDto : purchaseOrderDto.getPurchaseProducts()) {
                 PurchaseProduct purchaseProduct = modelMapper.map(productDto, PurchaseProduct.class);
                 purchaseProduct.setPurchaseOrderId(purchaseOrder); // Set the relationship
                 purchaseProductList.add(purchaseProduct);
             }
-
+            purchaseOrder.setOrderDate(Instant.now());
             purchaseOrder.setPurchaseProducts(purchaseProductList);
 
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.save(purchaseOrder)));

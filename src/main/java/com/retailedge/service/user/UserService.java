@@ -138,7 +138,6 @@ public class UserService implements UserDetailsService{
 
     }
 
-
     public ResponseEntity<ResponseModel<?>> deleteUser(Integer userId){
         try {
             if (!userRepository.existsById(userId)) {
@@ -154,14 +153,6 @@ public class UserService implements UserDetailsService{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error deleting user: " + e.getMessage(), 500));
         }
-    }
-
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
     }
 
     public String encodePassword(String password) {
@@ -236,6 +227,13 @@ public class UserService implements UserDetailsService{
                 "</body>" +
                 "</html>";
         emailService.sendEmail(user.getEmail(), "Welcome to RetailEdge! Get Started Today", body );
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
     }
 
 }
