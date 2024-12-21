@@ -74,7 +74,7 @@ public class UserService implements UserDetailsService{
             Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
             if(role.isEmpty()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ResponseModel<>(false, "Role not found!", 500));
+                        .body(new ResponseModel<>(false, "Role details not found!", 500));
             }
 
             if (userDTO.getProfileImage() != null && !userDTO.getProfileImage().isEmpty()) {
@@ -88,9 +88,7 @@ public class UserService implements UserDetailsService{
             modelMapper.map(userDTO, user);
             role.ifPresent(user::setRole);
 
-
-
-            return ResponseEntity.ok(new ResponseModel<>(true, jwtService.generateToken(user.getUsername()), 200, userRepository.save(user)));
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, userRepository.save(user)));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating user details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));

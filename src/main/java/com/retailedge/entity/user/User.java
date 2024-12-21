@@ -21,7 +21,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, updatable = false)
     private String username;
 
     @Column(nullable = false)
@@ -29,7 +29,7 @@ public class User {
     @JsonIgnore
     private String password; // Store hashed password
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, updatable = false)
     @Email(message = "Email should be valid")
     private String email;
 
