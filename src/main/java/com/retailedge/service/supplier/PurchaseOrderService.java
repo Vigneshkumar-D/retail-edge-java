@@ -152,7 +152,7 @@ public class PurchaseOrderService {
             PurchaseOrder purchaseOrder = modelMapper.map(purchaseOrderDto, PurchaseOrder.class);
 
             // Retrieve the supplier
-            Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplierId())
+            Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplier().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
 
             // Set the supplier for the PurchaseOrder

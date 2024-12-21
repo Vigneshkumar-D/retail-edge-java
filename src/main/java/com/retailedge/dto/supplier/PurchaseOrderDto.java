@@ -1,5 +1,6 @@
 package com.retailedge.dto.supplier;
 
+import com.retailedge.entity.suppiler.Supplier;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,11 +13,11 @@ import java.util.List;
 @Getter
 @Setter
 public class PurchaseOrderDto {
-    private Integer supplierId;
+    private Supplier supplier;
     private List<PurchaseProductDto> purchaseProductDto;
     private Double orderTotal;
     private String remark;
     private LocalDate orderDate;
-    private LocalDate expectedDeliveryDate;
-    private LocalDate actualDeliveryDate;
+    private LocalDate deliveryDate;
+    private String status;
 }

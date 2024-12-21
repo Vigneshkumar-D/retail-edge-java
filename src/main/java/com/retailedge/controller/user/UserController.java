@@ -21,8 +21,8 @@ public class UserController {
     @Autowired
     private RoleRepository roleRepository;
 
-    @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<ResponseModel<?>> createUser(@ModelAttribute UserDTO userDTO) {
+    @PostMapping
+    public ResponseEntity<ResponseModel<?>> createUser(@RequestBody UserDTO userDTO) {
 //        Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
 //        userDTO.setRole(role.get());
 
@@ -35,8 +35,8 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
-    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<ResponseModel<?>> updateUser(@PathVariable(name = "id") Integer userId, @ModelAttribute UserDTO userDTO) {
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<ResponseModel<?>> updateUser(@PathVariable(name = "id") Integer userId, @RequestBody UserDTO userDTO) {
         return userService.updateUser(userId, userDTO);
 
     }

@@ -65,12 +65,12 @@ public class AuthenticationService {
     public ResponseEntity<ResponseModel<?>> verify(TokenModel user) {
         try{
             Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-
             if (authentication.isAuthenticated()) {
-                Optional<User> user1 = userRepository.findByUsername(user.getUsername());
-                user1.get().setLastLogin(Instant.now());
-                userRepository.save(user1.get());
-               return ResponseEntity.ok(new ResponseModel<>(true, jwtService.generateToken(user.getUsername()), 200));
+                Optional<User> optionalUser = userRepository.findByUsername(user.getUsername());
+                User existingUser =  optionalUser.get();
+                existingUser.setLastLogin(Instant.now());
+                userRepository.save(existingUser);
+               return ResponseEntity.ok(new ResponseModel<>(true, jwtService.generateToken(existingUser.getUsername()), 200));
 
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

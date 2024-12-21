@@ -6,6 +6,7 @@ import com.retailedge.model.ResponseModel;
 import com.retailedge.repository.user.*;
 import com.retailedge.service.authentication.EmailService;
 import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
+import com.retailedge.utils.user.JWTUtil;
 import jakarta.annotation.PostConstruct;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -49,6 +50,12 @@ public class UserService implements UserDetailsService{
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;
 
+    @Autowired
+    private JWTUtil jwtUtil;
+
+    @Autowired
+    private JWTUtil jwtService;
+
     public ResponseEntity<ResponseModel<?>> getAllUsers() {
         try{
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, userRepository.findAll()));
@@ -59,13 +66,12 @@ public class UserService implements UserDetailsService{
     }
 
     public ResponseEntity<ResponseModel<?>> updateUser(Integer userId, UserDTO userDTO) {
-
         try{
             User user = userRepository.findById(userId).orElse(null);
             if (user == null) {
                 return null;
             }
-            Optional<Role> role = roleRepository.findById(userDTO.getRoleId());
+            Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
             if(role.isEmpty()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseModel<>(false, "Role not found!", 500));
@@ -82,7 +88,9 @@ public class UserService implements UserDetailsService{
             modelMapper.map(userDTO, user);
             role.ifPresent(user::setRole);
 
-            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, userRepository.save(user)));
+
+
+            return ResponseEntity.ok(new ResponseModel<>(true, jwtService.generateToken(user.getUsername()), 200, userRepository.save(user)));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating user details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
@@ -92,12 +100,11 @@ public class UserService implements UserDetailsService{
 
     public ResponseEntity<ResponseModel<?>> createUser(UserDTO userDTO) {
         try{
-            Optional<Role> role = roleRepository.findById(userDTO.getRoleId());
+            Optional<Role> role = roleRepository.findById(userDTO.getRole().getId());
             if(role.isEmpty()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ResponseModel<>(false, "Role not found!", 500));
+                        .body(new ResponseModel<>(false, "Role Details not found!", 500));
             }
-//            userDTO.setRole(role.get());
             User user = new User();
             user.setUsername(userDTO.getUsername());
             user.setRole(role.get());

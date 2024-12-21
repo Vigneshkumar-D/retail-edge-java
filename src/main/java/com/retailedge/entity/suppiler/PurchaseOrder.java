@@ -19,7 +19,6 @@ import java.util.List;
 @Getter
 @Setter
 public class PurchaseOrder {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -30,9 +29,8 @@ public class PurchaseOrder {
     @JsonManagedReference
     private List<PurchaseProduct> purchaseProducts;
     private Double orderTotal;
-    private LocalDate orderDate;
-    private LocalDate expectedDeliveryDate;
-    private LocalDate actualDeliveryDate;
+    private LocalDate deliveryDate;
+    private String status;
 }
 
 
