@@ -88,7 +88,7 @@ public class CustomerService {
         } catch (Exception e) {
             // Return 500 Internal Server Error
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseModel<>(false, "Error deleting customer: " + e.getMessage(), 500));
+                    .body(new ResponseModel<>(false, "Error deleting customer: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
 

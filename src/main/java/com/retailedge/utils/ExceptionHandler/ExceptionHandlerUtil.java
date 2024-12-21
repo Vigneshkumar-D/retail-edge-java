@@ -6,10 +6,9 @@ import org.springframework.stereotype.Component;
 public class ExceptionHandlerUtil {
 
     public String sanitizeErrorMessage(String errorMessage) {
-        int dbDetailsIndex = errorMessage.indexOf("[insert into products");
+        int dbDetailsIndex = errorMessage.indexOf("Detail");
         if (dbDetailsIndex != -1) {
-
-            return errorMessage.substring(0, dbDetailsIndex).trim();
+            return errorMessage.substring(dbDetailsIndex);
         }
 
         return errorMessage;
