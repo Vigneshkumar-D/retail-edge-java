@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,7 +16,7 @@ import java.time.Instant;
 @Setter
 public class EMIDetailsDto {
     private Customer customer;
-    private Product product;
+    private List<Product> product;
     private String financeProvider;
     private Double totalAmount;
     private Double emiAmount;

@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -77,13 +78,18 @@ public class EMIDetailsService {
             Customer customer = optionalCustomer.get();
             emiDetails.setCustomer(customer);
 
-            Optional<Product> optionalProduct = productRepository.findById(Math.toIntExact(emiDetailsDto.getProduct().getId()));
-            if (optionalProduct.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ResponseModel<>(false, "Product not found", 500));
-            }
-            Product product = optionalProduct.get();
-            emiDetails.setProduct(product);
+            List<Product> productList = emiDetailsDto.getProduct();
+//            List<Product> productList1 = m
+//            for(Product product: productList){
+//                Optional<Product> optionalProduct = productRepository.findById(Math.toIntExact(product.getId()));
+//                if (optionalProduct.isEmpty()) {
+//                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                            .body(new ResponseModel<>(false, "Product not found", 500));
+//                }
+//                Product product = optionalProduct.get();
+//            }
+
+            emiDetails.setProduct(productList);
 
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, emiDetailsRepository.save(emiDetails)));
         }catch (Exception e) {

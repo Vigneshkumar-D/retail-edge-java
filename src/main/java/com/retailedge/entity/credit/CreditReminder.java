@@ -30,10 +30,13 @@ public class CreditReminder {
     private Double totalCreditAmount;
     private Double lastPayment;
     private Double remainingBalance;
+    private Double totalAmount;
+    private  Double totalPaidAmount;
     private Instant dueDate;
     private Instant lastPaymentDate;
     private boolean reminderSent;
     private String description;
+    private String status;
     @Enumerated(EnumType.STRING)
     private List<CreditType> creditType;
 

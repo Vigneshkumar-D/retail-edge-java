@@ -23,6 +23,9 @@ public class CreditReminderDto {
     private Double remainingBalance;
     private Double lastPayment;
     private Instant dueDate;
+    private String status;
+    private Double totalAmount;
+    private  Double totalPaidAmount;
     private Instant lastPaymentDate;
     private boolean reminderSent;
     private String description;

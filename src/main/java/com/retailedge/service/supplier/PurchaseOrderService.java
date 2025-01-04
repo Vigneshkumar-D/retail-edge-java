@@ -183,12 +183,18 @@ public class PurchaseOrderService {
 
     public ResponseEntity<ResponseModel<?>> update(Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto) {
         try{
+//            System.out.println("supplier id "+ purchaseOrderDto.getSupplier());
+            System.out.println("total "+ purchaseOrderDto.getOrderTotal());
             PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
             if (purchaseOrder == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new ResponseModel<>(false, "Purchase Order Details not found", 500));
             }
+            Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplier().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
+            purchaseOrderDto.setSupplier(supplier);
             modelMapper.map(purchaseOrderDto, purchaseOrder);
+//            purchaseOrder.setSupplier(supplier);
 
             return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.save(purchaseOrder)));
         }catch (Exception e) {
@@ -205,6 +211,14 @@ public class PurchaseOrderService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseModel<>(false, "Purchase order not found", 404));
             }
+            PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
+            assert purchaseOrder != null;
+            Supplier supplier = purchaseOrder.getSupplier();
+            supplier.setTotalOrderValue(supplier.getTotalOrderValue() - purchaseOrder.getOrderTotal());
+            supplier.setBalance(supplier.getBalance() - purchaseOrder.getOrderTotal());
+            System.out.println(supplier.getTotalOrderValue() +" "+supplier.getBalance());
+            Supplier savedSupplier = supplierRepository.save(supplier);
+            System.out.println("savedSupplier " + savedSupplier.getSupplierName() +" "+savedSupplier.getBalance());
             purchaseOrderRepository.deleteById(purchaseOrderId);
             // Return 200 OK if the category is deleted successfully
             return ResponseEntity.ok(new ResponseModel<>(true, "Deleted successfully", 200));

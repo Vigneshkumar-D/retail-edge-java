@@ -52,5 +52,17 @@ public class InvoiceDto {
     private String cardType;
     private String cardTransactionId;
     private Double cardPayment;
+    private Double remainingBalance;
+
+    public InvoiceDto(Integer id, String invoiceNumber, Instant invoiceDate, Double totalAmount,
+                      Double cashPayment, Double upiPayment, Double cardPayment, Double remainingBalance) {
+        this.invoiceNumber = invoiceNumber;
+        this.invoiceDate = invoiceDate;
+        this.totalAmount = totalAmount;
+        this.cashPayment = cashPayment;
+        this.upiPayment = upiPayment;
+        this.cardPayment = cardPayment;
+        this.remainingBalance = remainingBalance;
+    }
 
 }

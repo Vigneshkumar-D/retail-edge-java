@@ -38,5 +38,11 @@ public class PaidServiceDto {
 
     private Double profitMargin;
 
+    private Double postServicePayment;
+
     private Instant serviceDate;
+
+    private String status;
+
+    private Instant serviceCompletionDate;
 }

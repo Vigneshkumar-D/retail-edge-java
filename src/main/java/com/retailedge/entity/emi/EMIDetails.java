@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "emi_details")
@@ -22,9 +23,8 @@ public class EMIDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<Product> product;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)

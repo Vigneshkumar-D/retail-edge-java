@@ -102,12 +102,18 @@ public class InvoiceService {
             // Initialize credit and EMI objects
             CreditReminder creditReminder = null;
             EMIDetails emiDetails = null;
+            List<Product> productList = new ArrayList<>();
 
             // Handle payment methods
             if (invoiceDto.getPaymentMethod().contains(PaymentMethod.CREDIT)) {
                 CreditReminderDto creditReminderDto = invoiceDto.getCreditReminder();
                 if (creditReminderDto != null) {
                     creditReminder = modelMapper.map(creditReminderDto, CreditReminder.class);
+                    creditReminder.setTotalAmount(invoiceDto.getTotalAmount());
+                    creditReminder.setTotalPaidAmount(0.0);
+                    creditReminder.setRemainingBalance(creditReminderDto.getTotalCreditAmount());
+                    creditReminder.setLastPayment(0.0);
+                    creditReminder.setStatus("Pending");
                     creditReminder.setCustomer(customer); // Set customer for CreditReminder
                 }
             }
@@ -117,8 +123,13 @@ public class InvoiceService {
                 if (emiDetailsDto != null) {
                     emiDetails = modelMapper.map(emiDetailsDto, EMIDetails.class);
                     emiDetails.setCustomer(customer);
-                    Optional<Product> product = productRepository.findById(Math.toIntExact(invoiceDto.getLineItems().get(0).getProduct().getId()));
-                    emiDetails.setProduct(product.get());// Set customer for EMIDetails
+
+                    for(InvoiceLineItemDto invoiceLineItemDto: invoiceDto.getLineItems()){
+                        Optional<Product> optionalProduct = productRepository.findById(Math.toIntExact(invoiceLineItemDto.getProduct().getId()));
+                        productList.add(optionalProduct.get());
+                    }
+                    emiDetails.setProduct(productList);
+                   // Set customer for EMIDetails
                 }
             }
 
