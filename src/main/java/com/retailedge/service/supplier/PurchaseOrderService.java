@@ -183,8 +183,6 @@ public class PurchaseOrderService {
 
     public ResponseEntity<ResponseModel<?>> update(Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto) {
         try{
-//            System.out.println("supplier id "+ purchaseOrderDto.getSupplier());
-            System.out.println("total "+ purchaseOrderDto.getOrderTotal());
             PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
             if (purchaseOrder == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

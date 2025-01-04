@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Settlement {
+public class SettlementDto {
 
     private Instant settlementDate;
 
