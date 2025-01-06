@@ -48,6 +48,9 @@ public class Settlement {
     private Double netCash;
 
     @Column
+    private String remark;
+
+    @Column
     private Double shortage; // Can be null if there's no shortage
 
     public Double calculateFinalCash() {

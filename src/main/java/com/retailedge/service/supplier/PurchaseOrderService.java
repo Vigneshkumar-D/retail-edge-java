@@ -129,8 +129,6 @@ public class PurchaseOrderService {
 //    }
 //
 
-
-
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;
 
@@ -226,7 +224,6 @@ public class PurchaseOrderService {
                     .body(new ResponseModel<>(false, "Error deleting Purchase order: " + e.getMessage(), 500));
         }
     }
-
 
     public ResponseEntity<ResponseModel<?>> getLastThreeOrdersBySupplierId(Integer supplierId) {
         try{

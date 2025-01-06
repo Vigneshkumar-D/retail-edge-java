@@ -52,9 +52,11 @@ public class SettlementService {
     public ResponseEntity<ResponseModel<?>> calculateSettlement(LocalDate date) {
         try {
             Double serviceAmount = calculatePaidServices(date);
-            Map<String, Double> invoiceAmount = calculateSales(date);
             Double expenseAmount = calculateExpenses(date);
-            return ResponseEntity.ok(new ResponseModel<>(true, serviceAmount+" "+invoiceAmount+" "+expenseAmount, 200, settlementRepository.findAll()));
+            Map<String, Double> invoiceAmount = calculateSales(date);
+            invoiceAmount.put("serviceAmount", serviceAmount);
+            invoiceAmount.put("expenseAmount", expenseAmount);
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, invoiceAmount));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error calculating settlement for the date: "+date+" "+ (e.getMessage()), 500));

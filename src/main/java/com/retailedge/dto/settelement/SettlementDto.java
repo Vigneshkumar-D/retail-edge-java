@@ -32,6 +32,8 @@ public class SettlementDto {
 
     private Double netCash;
 
+    private String remark;
+
     private Double shortage;
 
 }
