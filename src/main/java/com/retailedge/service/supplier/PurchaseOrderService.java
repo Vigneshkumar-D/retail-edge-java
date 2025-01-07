@@ -179,25 +179,67 @@ public class PurchaseOrderService {
         }
     }
 
+//    @Transactional
+//    public ResponseEntity<ResponseModel<?>> update(Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto) {
+//        try{
+//            PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
+//            if (purchaseOrder == null) {
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                        .body(new ResponseModel<>(false, "Purchase Order Details not found", 500));
+//            }
+//            Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplier().getId())
+//                    .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
+//            purchaseOrderDto.setSupplier(supplier);
+//            modelMapper.map(purchaseOrderDto, purchaseOrder);
+////            purchaseOrder.setSupplier(supplier);
+//
+//            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.save(purchaseOrder)));
+//        }catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ResponseModel<>(false, "Error updating purchase order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
+//        }
+//    }
+
+
+    @Transactional
     public ResponseEntity<ResponseModel<?>> update(Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto) {
-        try{
+        try {
+            // Find the existing PurchaseOrder
             PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId).orElse(null);
             if (purchaseOrder == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ResponseModel<>(false, "Purchase Order Details not found", 500));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseModel<>(false, "Purchase Order Details not found", 404));
             }
+
+            // Find the supplier and set it
             Supplier supplier = supplierRepository.findById(purchaseOrderDto.getSupplier().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
-            purchaseOrderDto.setSupplier(supplier);
-            modelMapper.map(purchaseOrderDto, purchaseOrder);
-//            purchaseOrder.setSupplier(supplier);
+            purchaseOrder.setSupplier(supplier);
 
-            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, purchaseOrderRepository.save(purchaseOrder)));
-        }catch (Exception e) {
+            // Update purchaseProducts in place to avoid orphan removal error
+            List<PurchaseProductDto> updatedProductsDto = purchaseOrderDto.getPurchaseProducts();
+            List<PurchaseProduct> existingProducts = purchaseOrder.getPurchaseProducts();
+            System.out.println("existingProducts0 "+existingProducts.size());
+            existingProducts.clear();
+            System.out.println("existingProducts1 "+existingProducts.size());
+            for(PurchaseProductDto purchaseProductDto: updatedProductsDto){
+                PurchaseProduct purchaseProduct = (modelMapper.map(purchaseProductDto, PurchaseProduct.class));
+                purchaseProduct.setPurchaseOrderId(purchaseOrder);
+                existingProducts.add(purchaseProduct);
+            }
+            System.out.println("existingProducts2 "+existingProducts.size());
+            // Save the updated PurchaseOrder
+            PurchaseOrder updatedPurchaseOrder = purchaseOrderRepository.save(purchaseOrder);
+
+            return ResponseEntity.ok(new ResponseModel<>(true, "Success", 200, updatedPurchaseOrder));
+
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseModel<>(false, "Error updating purchase order details: " + exceptionHandlerUtil.sanitizeErrorMessage(e.getMessage()), 500));
         }
     }
+
+
 
     public ResponseEntity<ResponseModel<?>> delete(Integer purchaseOrderId) throws Exception {
 

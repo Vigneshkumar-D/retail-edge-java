@@ -27,7 +27,7 @@ public class PurchaseOrderController {
     }
 
     @PutMapping("/{purchaseOrderId}")
-    public ResponseEntity<ResponseModel<?>> update(@PathVariable("purchaseOrderId") Integer purchaseOrderId, PurchaseOrderDto purchaseOrderDto){
+    public ResponseEntity<ResponseModel<?>> update(@PathVariable("purchaseOrderId") Integer purchaseOrderId, @RequestBody PurchaseOrderDto purchaseOrderDto){
         return purchaseOrderService.update(purchaseOrderId, purchaseOrderDto);
     }
 

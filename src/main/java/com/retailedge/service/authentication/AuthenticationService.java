@@ -92,7 +92,7 @@ public class AuthenticationService {
                     .toLocalDateTime();
             TokenBlacklist blacklistedToken = new TokenBlacklist(jwtToken, localDateTime);
             tokenBlacklistRepository.save(blacklistedToken);
-            return ResponseEntity.ok(new ResponseModel<>(true, "Logged out successfully", 200));
+            return ResponseEntity.ok(new ResponseModel<>(true, "Logged out successfully!", 200));
 
         }catch(Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
