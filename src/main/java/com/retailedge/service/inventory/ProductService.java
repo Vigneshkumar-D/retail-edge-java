@@ -7,7 +7,7 @@ import com.retailedge.entity.inventory.Product;
 import com.retailedge.dto.inventory.ProductDto;
 //import com.retailedge.entity.product.MobileProduct;
 import com.retailedge.entity.inventory.NonMobileProduct;
-import com.retailedge.kafka.KafkaConsumerService;
+//import com.retailedge.kafka.KafkaConsumerService;
 import com.retailedge.model.ResponseModel;
 import com.retailedge.model.inventory.BarcodeResult;
 import com.retailedge.repository.gst.HSNCodeRepository;
@@ -49,8 +49,8 @@ public class ProductService {
     @Autowired
     private HSNCodeRepository hsnCodeRepository;
 
-    @Autowired
-    private KafkaConsumerService kafkaConsumerService;
+//    @Autowired
+//    private KafkaConsumerService kafkaConsumerService;
 
     @Autowired
     private ExceptionHandlerUtil exceptionHandlerUtil;

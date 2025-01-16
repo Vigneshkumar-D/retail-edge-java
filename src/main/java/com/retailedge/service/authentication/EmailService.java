@@ -19,10 +19,9 @@ public class EmailService {
     public void sendEmail(String to, String subject, String body) {
 
         try {
-            System.out.println("try mail");
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            message.setFrom("RetailEdge Team <care.retailtedge@gmail.com>");
+            message.setFrom("SmartRetailEdge Team <care.retailtedge@gmail.com>");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, true);

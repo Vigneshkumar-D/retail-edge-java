@@ -8,6 +8,7 @@ import com.retailedge.service.authentication.EmailService;
 import com.retailedge.utils.ExceptionHandler.ExceptionHandlerUtil;
 import com.retailedge.utils.user.JWTUtil;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,9 @@ public class UserService implements UserDetailsService{
 
     @Autowired
     private JWTUtil jwtService;
+
+    @Autowired
+    private HttpServletRequest request;
 
     public ResponseEntity<ResponseModel<?>> getAllUsers() {
         try{
@@ -196,6 +200,7 @@ public class UserService implements UserDetailsService{
 
     public void sentWelcomeMail(UserDTO user){
         System.out.println("In user mail");
+        String rootUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "") + request.getContextPath();
         String body = "<html>" +
                 "<head>" +
                 "<style>" +
@@ -210,21 +215,21 @@ public class UserService implements UserDetailsService{
                 "<body>" +
                 "<div class='container'>" +
                 "<h3>Welcome, " + user.getUsername() + "!</h3>" +
-                "<p>We are excited to have you join RetailEdge! Your account has been successfully created. Here are your login credentials:</p>" +
+                "<p>We are thrilled to have you as part of SmartRetailEdge! Your account has been successfully created. Here are your login credentials:</p>" +
                 "<p><strong>Username:</strong> " + user.getUsername() + "</p>" +
                 "<p><strong>Password:</strong> " + user.getPassword() + "</p>" +
                 "<p>Click the button below to log in and start exploring:</p>" +
                 "<div style='text-align: center; margin: 20px 0;'>" +
-                "<a href='https://retail-edge.netlify.app/login' style='background: #007bff; color: #fff; padding: 10px 20px; border-radius: 5px; font-size: 16px;'>Log In to Your Account</a>" +
+                "<a href='"+rootUrl+"/login' style='background: #007bff; color: #fff; padding: 10px 20px; border-radius: 5px; font-size: 16px;'>Log In to Your Account</a>" +
                 "</div>" +
                 "<p>If you wish to set a new password, you can use the 'Forgot Password' option on the login page to reset it at any time.</p>" +
                 "<p>If you have any questions or need assistance, feel free to reach out to our support team.</p>" +
-                "<p>We hope you enjoy using RetailEdge!</p>" +
-                "<p>Regards,<br>Team RetailEdge</p>" +
+                "<p>We hope you enjoy using SmartRetailEdge!</p>" +
+                "<p>Regards,<br>Team SmartRetailEdge</p>" +
                 "</div>" +
                 "</body>" +
                 "</html>";
-        emailService.sendEmail(user.getEmail(), "Welcome to RetailEdge! Get Started Today", body );
+        emailService.sendEmail(user.getEmail(), "Welcome to SmartRetailEdge! Get Started Today", body );
     }
 
     @Override

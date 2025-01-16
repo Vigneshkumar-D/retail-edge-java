@@ -6,7 +6,7 @@ import com.retailedge.model.ResponseModel;
 import com.retailedge.service.service.PaidServiceDetailsService;
 import com.retailedge.specification.service.PaidServiceSpecificationBuilder;
 import jakarta.websocket.server.PathParam;
-import org.apache.kafka.common.errors.ResourceNotFoundException;
+//import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

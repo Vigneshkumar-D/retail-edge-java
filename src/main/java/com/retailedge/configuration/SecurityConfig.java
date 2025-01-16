@@ -87,24 +87,62 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        return http
+//                .csrf(csrf -> csrf.disable())
+//                .cors(withDefaults())
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(authorize -> authorize
+//                        .requestMatchers("/static/**", "/public/**", "/css/**", "/js/**", "/images/**").permitAll()
+//                        .requestMatchers(
+//                                "/swagger-ui/**",
+//                                "/swagger-resources/**",
+//                                "/v3/api-docs/**",
+//                                "/api/auth/**",
+//                                "/public/**",
+//                                "/ws/**",
+//                                "/login/**",
+//                                "/forget-password",
+//                                "/reset-password"
+//                        ).permitAll()
+//                        .requestMatchers("/").permitAll()
+//                        .anyRequest().authenticated()
+//                )
+//                .httpBasic(withDefaults())
+//                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+//                .headers(headers -> headers
+//                        .frameOptions(frame -> frame.deny())
+//                        .contentSecurityPolicy(policy -> policy
+//                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src https://*; child-src 'none';")
+//                        )
+//                        .referrerPolicy(policy -> policy.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN))
+//                        .httpStrictTransportSecurity(sec -> sec.includeSubDomains(true).maxAgeInSeconds(31536000))
+//                )
+//                .build();
+//    }
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .securityMatcher("/api/**", "/swagger-ui/**")
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-resources/**",
-                                "/v3/api-docs/**",
+                        .requestMatchers("/swagger-ui/**",
+                                "/swagger-resources/*",
                                 "/api/auth/**",
-                                "/public/**",
-                                "/ws/**"
-                        ).permitAll()
+                                "/login/",
+                                "/forget-password",
+                                "/reset-password",
+                                "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/public/**","/api/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .cors(withDefaults())
                 .httpBasic(withDefaults())
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(accessDeniedHandler())
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.deny())
@@ -116,6 +154,8 @@ public class SecurityConfig {
                 )
                 .build();
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

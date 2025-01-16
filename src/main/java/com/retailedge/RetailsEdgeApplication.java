@@ -31,7 +31,7 @@ public class RetailsEdgeApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(RetailsEdgeApplication.class, args);
-        System.out.println("Application is Running....");
+        System.out.println("SmartRetailEdge Application is Running....");
     }
 }
 
